@@ -1,0 +1,60 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+*.js.map
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Context store (may contain sensitive session data)
+# Keep structure, ignore content
+janus-context/sessions/*.json
+janus-context/artifacts/**/*
+!janus-context/artifacts/.gitkeep
+janus-context/state/delegations/*.json
+
+# But track manifesto and decisions
+!janus-context/manifesto/
+!janus-context/decisions/
+
+# Python (if any scripts)
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+
+# Development artifacts
+create_pixel_art.py
+*-original.png
+*-original.jpg
