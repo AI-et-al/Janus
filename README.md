@@ -20,9 +20,7 @@ This isn't a black box. This isn't "trust the AI." This is a symposium where the
 
 ---
 
-## Why?
-
-Because I've been waiting since 1999 for machines smart enough to be worth arguing with. Now they're here, and the tools we have treat them like oracles—you ask, they answer, you accept or reject in ignorance.
+## 
 
 That's not collaboration. That's superstition.
 
