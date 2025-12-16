@@ -10,9 +10,9 @@
 
 ---
 
-## What Is This?
+## 
 
-Janus is a multi-model AI orchestration system. Three frontier models—Claude, GPT, Gemini—deliberate on your problem. You watch them think. You see where they agree. You see where they disagree. Then *you* decide.
+Janus is a multi-model AI orchestration system. Three frontier models—Claude Opus 4.5 , ChatGPT 5.2 Codex, Gemini 3 PRO, collaborate, deliberate, form consensus in real-time on your request. You watch them think. You see where they agree. You see where they disagree. They propose solutions and you decide..
 
 **The watching is the feature.**
 
