@@ -1,238 +1,160 @@
 # JANUS
 
 <p align="center">
-  <img src="assets/banner.png" alt="Janus - Two faces, past and future" width="100%">
-</p>
-
-<p align="center">
-  <em>"Two faces looking in opposite directions—one sees the past, one sees the future.<br>The god of beginnings, transitions, and endings."</em>
+  <img src="assets/banner.png" alt="Janus" width="100%">
 </p>
 
 ---
 
-## 
+## The Problem With Asking One Oracle
 
-Janus is a multi-model AI orchestration system. Three frontier models—Claude Opus 4.5 , ChatGPT 5.2 Codex, Gemini 3 PRO, collaborate, deliberate, form consensus in real-time on your request. You watch them think. You see where they agree. You see where they disagree. They propose solutions and you decide..
+Here's something that bothered me: we have access to multiple frontier language models, each trained on slightly different data with slightly different architectures and slightly different RLHF, and our default interaction pattern is to pick one and trust it.
 
-**The watching is the feature.**
+This is like having access to three doctors who went to different medical schools, trained in different hospitals, and developed different clinical intuitions—and only ever consulting one of them. The interesting information is often in *where they disagree*.
 
-This isn't a black box. This isn't "trust the AI." This is a symposium where the smartest minds in the room happen to be artificial, and you're Socrates with the wine cup, guiding the conversation toward truth.
+When Claude says "this approach has serious security implications" and GPT says "this is standard practice," that delta isn't noise. It's signal. It's the thing you actually want to know about. But our tools hide it from us, because our tools are built around the assumption that you want *an answer*, not *a map of the answer space*.
 
----
-
-## 
-
-That's not collaboration. That's superstition.
-
-Karpathy said it best:
-
-> *"I don't want an agent that goes off for 20 minutes and comes back with 1,000 lines of code. I want to work in chunks I can keep in my head, where the LLM explains what it's writing."*
-
-Janus takes this further: **multiple LLMs explaining to each other, in front of you, so you can see the shape of the problem emerge from their disagreement.**
-
-When Claude says "this is risky" and GPT says "this is fine," that delta isn't noise—it's signal. Surface it. Don't suppress it.
+Janus is an attempt to fix this.
 
 ---
 
-## The Council
+## What This Actually Is
+
+Three language models—Claude, GPT, Gemini—receive the same prompt in parallel. Each produces a response with:
+- A proposal
+- A confidence level
+- A list of uncertainties
+- Alternatives they considered and rejected
+
+Then we diff them. Where do they agree? Where do they diverge? On what does their confidence correlate, and on what does it anti-correlate?
+
+You get to watch this happen. You see the reasoning. You see the disagreement. Then *you* decide what to do with it.
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        YOU (Arbiter)                        │
-│                                                             │
-│    "Tell me about authentication approaches for this API"   │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      THE COUNCIL                            │
-├──────────────────┬──────────────────┬───────────────────────┤
-│   CLAUDE OPUS    │   GPT-5.1        │   GEMINI 3 PRO        │
-│   (Synthesis)    │   (Reasoning)    │   (Breadth)           │
-│                  │                  │                       │
-│  "OAuth 2.0 with │  "JWT with RSA   │  "Consider OAuth but  │
-│   PKCE is the    │   signing. The   │   also look at PASETO │
-│   standard, but  │   PKCE flow has  │   which addresses JWT │
-│   note the token │   known replay   │   shortcomings. Also: │
-│   refresh race   │   vulnerabilities│   what's your scale?" │
-│   condition..."  │   if..."         │                       │
-│                  │                  │                       │
-│  Confidence: 85% │  Confidence: 78% │  Confidence: 72%      │
-│  Tokens: 847     │  Tokens: 1,203   │  Tokens: 634          │
-│  Cost: $0.042    │  Cost: $0.038    │  Cost: $0.019         │
-├──────────────────┴──────────────────┴───────────────────────┤
-│                                                             │
-│  ⚠️  DISAGREEMENT DETECTED                                   │
-│  Claude and GPT differ on replay vulnerability assessment   │
-│                                                             │
-│  [APPROVE Claude's Approach]  [REQUEST CLARIFICATION]       │
-│  [SYNTHESIZE ALL THREE]       [ASK DIFFERENT QUESTION]      │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────┐
+│                        THE COUNCIL                         │
+├──────────────────┬──────────────────┬──────────────────────┤
+│      CLAUDE      │       GPT        │       GEMINI         │
+│                  │                  │                      │
+│  "OAuth 2.0 with │  "JWT with RSA   │  "Consider PASETO,   │
+│   PKCE. Note the │   signing. PKCE  │   it addresses JWT   │
+│   token refresh  │   has replay     │   weaknesses. Also:  │
+│   race condition │   risks if..."   │   what's your scale?"│
+│                  │                  │                      │
+│  Confidence: 85% │  Confidence: 78% │  Confidence: 72%     │
+├──────────────────┴──────────────────┴──────────────────────┤
+│  ⚠ DISAGREEMENT: replay vulnerability assessment differs   │
+└────────────────────────────────────────────────────────────┘
 ```
 
-Three advisors. Parallel execution. Each shows their work. You see everything.
+The Council doesn't vote. It doesn't synthesize into mush. It presents its disagreements to you because its disagreements are the most valuable thing it has to offer.
 
 ---
 
-## Core Principles
+## Why Bother
 
-### 1. Disagreement Is Signal
+Language models are, among other things, compressed representations of human knowledge and reasoning patterns. Different models compress differently. They have different priors, different blindspots, different strengths.
 
-When models disagree, that's not a bug—it's the most valuable information in the system. Disagreement reveals:
-- Edge cases one model sees and another doesn't
-- Different priors baked into training
-- Genuine uncertainty about the problem
+GPT tends toward confident, structured responses. Claude tends toward nuance and hedging. Gemini tends toward breadth. These aren't bugs—they're features of different training regimes that captured different aspects of the space of reasonable responses.
 
-We don't manufacture consensus. We surface divergence.
+When you query one model, you get one sample from one distribution. When you query three and look at their disagreements, you get something closer to the *shape* of the uncertainty. You learn not just "what might be true" but "what the range of defensible positions looks like."
 
-### 2. The Karpathy Principle
-
-Everything stays in chunks you can hold in your head:
-- Proposals are bounded, reviewable, understandable
-- No 1,000-line code drops—incremental, explained work
-- The human stays in the loop at every meaningful decision
-- **You get smarter working with it, not just faster**
-
-### 3. Transparency Over Magic
-
-- Token counts visible at all times
-- Cost per query, per model, running total
-- Full reasoning chains exposed (yes, even `<thinking>` tags)
-- Nothing happens without your approval
-
-### 4. Git Is Truth
-
-All context persists in Git-backed storage:
-- Session summaries survive browser closes
-- Decisions are logged with rationale
-- If it's not in Git, it didn't happen
-- *The next Claude that talks to you knows what the last one decided*
+This is useful if you're trying to make decisions rather than just get answers.
 
 ---
 
-## Architecture
+## The Karpathy Constraint
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    STRATEGIC LAYER                          │
-│                    (claude.ai / Opus 4.5)                   │
-│                                                             │
-│    Strategic planning, architecture decisions, manifesto    │
-│    enforcement—the high-bandwidth conversational interface  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                      Context Bridge
-                    (Git-backed state)
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    EXECUTION LAYER                          │
-│                    (Claude Agent SDK)                       │
-│                                                             │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐        │
-│  │ Scout Swarm │  │   Council   │  │  Executor   │        │
-│  │ (5× Haiku)  │  │  (3 models) │  │   Swarm     │        │
-│  │             │  │             │  │ (10× Haiku) │        │
-│  │ URL verify  │  │ Deliberate  │  │ Write code  │        │
-│  │ Doc check   │  │ Disagree    │  │ Run tests   │        │
-│  │ Recon       │  │ Synthesize  │  │ Build       │        │
-│  └─────────────┘  └─────────────┘  └─────────────┘        │
-└─────────────────────────────────────────────────────────────┘
-```
+There's a failure mode in AI tooling where the tool tries to be impressive. It goes off for twenty minutes and comes back with a thousand lines of code and you have no idea if any of it is right.
 
-### Context Bridge
+Andrej Karpathy has been pretty clear about not wanting this:
 
-The critical innovation. Sessions in claude.ai can't directly invoke SDK agents. The Context Bridge solves this:
+> *"I want to mass-execute short tasks, looking at each one... I don't want the agent to go off for 20 minutes and mass-execute 50 writes."*
 
-```
-janus-context/
-├── sessions/           # Conversation summaries
-├── decisions/          # Key architectural choices
-├── state/
-│   ├── current-focus.json
-│   └── delegations/    # Pending tasks for SDK
-├── manifesto/
-│   └── MANIFESTO.md    # Rules enforced on all subagents
-└── artifacts/          # Generated outputs
-```
+Janus follows this principle. Everything happens in chunks you can hold in your head. The Council proposes, you approve. Subagents execute bounded tasks and report back. Nothing happens in the dark.
 
-This is the memory that doesn't die when the browser closes.
+If you want an AI that disappears for an hour and returns with a fait accompli, this isn't it. If you want to stay in the loop while AIs do the cognitive heavy lifting, this might be useful.
 
 ---
 
-## Who Is This For?
+## Architecture (Short Version)
 
-Practitioners who:
-- Have API keys for Claude, GPT, and Gemini
-- Are willing to pay $10-50 per complex task for quality orchestration
-- Want to **understand**, not just trust
-- Believe multi-model collaboration yields insights no single model provides
+**Strategic layer**: You talk to Claude (Opus) in claude.ai. This is where you think through problems, make architectural decisions, define what needs to happen.
 
-If you want a magic button that "just works," this isn't it.  
-If you want to *see* the thinking, this is.
+**Context Bridge**: A Git-backed store that persists your decisions, session summaries, and pending tasks. This is the memory that survives when the browser closes.
+
+**Execution layer**: The Claude Agent SDK runs subagent swarms:
+- *Scouts* (Haiku): Verify URLs, check if packages exist, validate resources. They're not allowed to speculate—if they can't provide a working link, they report failure.
+- *Executors* (Haiku): Implement bounded tasks. Write code, run tests, produce artifacts.
+- *Council* (Opus/GPT/Gemini): Deliberate on questions that benefit from multiple perspectives.
+
+Everything flows through the Context Bridge so the next session knows what the previous one decided.
 
 ---
 
-## Status
+## Constraints As Features
 
-**Phase 0: Foundation** — In Progress
+The Manifesto (which every subagent receives) includes this rule:
+
+> When the human specifies a constraint, treat it as sacred. "Must use OAuth 2.0" means OAuth 2.0, not "here's why you should consider alternatives."
+
+This sounds obvious but most AI tooling gets it wrong. The model optimizes for appearing helpful, which often means offering alternatives to what you asked for. But you have context the model doesn't. Your constraints encode decisions already made. Respecting them is respecting your judgment.
+
+If you ask Janus for TypeScript, you get TypeScript. If you ask for minimal dependencies, you don't get a framework recommendation. The sophistication is in working within constraints, not in escaping them.
+
+---
+
+## Current Status
+
+This is early. The architecture is documented, the types are defined, the scaffolding exists. The interesting parts—Council deliberation protocol, disagreement detection, observable UI—are not yet implemented.
 
 What exists:
-- [x] Vision and architecture documented
+- [x] Vision and architecture documentation
+- [x] TypeScript project scaffold
 - [x] Context Bridge design
-- [x] MANIFESTO.md (rules for subagents)
-- [ ] TypeScript project scaffolding
-- [ ] Basic CLI entry point
+- [x] MANIFESTO (rules for subagents)
+- [x] CLI skeleton
 
-What's next:
-- [ ] Council deliberation protocol (PROPOSE → CRITIQUE → SYNTHESIZE)
-- [ ] Multi-model API adapters (Anthropic, OpenAI, Google)
-- [ ] Session management
-- [ ] Git-backed persistence
+What doesn't:
+- [ ] Council deliberation implementation  
+- [ ] Multi-model API adapters
+- [ ] Disagreement detection
 - [ ] Observable deliberation UI
+- [ ] Scout and Executor swarms
 
-See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full implementation roadmap.
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design.
+
+---
+
+## Who This Is For
+
+You probably want this if:
+- You have API keys for multiple frontier models and are willing to pay for quality
+- You'd rather understand a decision than receive a recommendation
+- You've noticed that different models give usefully different answers to the same question
+- You're suspicious of tools that hide their reasoning
+
+You probably don't want this if:
+- You want a magic button that just works
+- You prefer single-model simplicity
+- You trust AI outputs without inspection
 
 ---
 
 ## The Name
 
-Janus: Roman god of doorways, beginnings, transitions. Two faces—one looking to the past (what we've built, what we know), one to the future (what we're building, what we don't yet understand).
+Janus: Roman god of doorways, beginnings, transitions. Two faces—one looking back, one looking forward. 
 
-Also: the name fits a multi-perspective system. Different faces, same deity. Different models, same truth we're hunting.
-
----
-
-## Philosophy (or: Why I Built This)
-
-I've been following AI since before it was cool. Read Kurzweil in '99. Watched the winters. Watched the spring. Now we're here, and the gap between what these systems can do and what our tools let us *see them doing* is embarrassing.
-
-The rationalists talk about AI alignment. Here's a simpler alignment problem: **aligning human understanding with AI capability.** 
-
-Right now, we treat language models like magic 8-balls. Ask a question, get an answer, have no idea why. That's not partnership—that's cargo cult engineering.
-
-Janus is my attempt to close that gap. Watch the thinking. See the disagreement. Make informed decisions.
-
-This is how I want to work with AI. Maybe you do too.
-
----
-
-## Contributing
-
-This is early. The architecture is documented, the vision is clear, but the code is nascent.
-
-If you share the vision—observable AI deliberation, human-in-the-loop always, disagreement as signal—reach out. File issues. Send PRs.
+Also: the two faces represent multiple perspectives on the same reality. Different views, same underlying truth. That's more or less what multi-model deliberation gives you.
 
 ---
 
 ## License
 
-MIT. Use it, fork it, improve it.
+MIT. Do what you want with it.
 
 ---
 
 <p align="center">
-  <em>"The unexamined AI is not worth deploying."</em><br>
-  — with apologies to Socrates
+  <em>"The map is not the territory, but three maps from different cartographers <br>gives you a better sense of where the territory actually is."</em>
 </p>
