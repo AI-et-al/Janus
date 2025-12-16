@@ -143,9 +143,27 @@ You probably don't want this if:
 
 ## The Name
 
-Janus: Roman god of doorways, beginnings, transitions. Two faces—one looking back, one looking forward. 
+<p align="center">
+  <img src="assets/janus-faces.png" alt="Janus" width="300">
+</p>
 
-Also: the two faces represent multiple perspectives on the same reality. Different views, same underlying truth. That's more or less what multi-model deliberation gives you.
+Janus is the Roman god of thresholds—doorways, transitions, beginnings. Two faces looking in opposite directions: one at what has been, one at what might be. He presides over the liminal space where past becomes future.
+
+This isn't just mythology. It's a description of the computational structure of agency.
+
+Every agent that acts in time faces the same fundamental asymmetry: the past is fixed and partially knowable; the future is open and must be modeled. Memory compresses what happened. Prediction simulates what might happen. The present is the narrow interface where information about the past gets transformed into actions that shape the future.
+
+Standing in that doorway is the only place where anything happens.
+
+Language models are, among other things, compressed world-models—massive approximations of human knowledge and reasoning, trained on the accumulated past of human writing. When you prompt a model, you're asking it to extrapolate from patterns in the historical record into the space of possible futures.
+
+Different models compress differently. Same territory, different maps. Each captures patterns the others missed; each has blindspots the others don't share.
+
+When three models look at the same problem and reach different conclusions, they're not failing. They're exposing the actual structure of the uncertainty. The disagreement *is* the information. It tells you where the past underdetermines the future, where the territory has features that resist simple mapping.
+
+Janus doesn't resolve tension between perspectives. He holds the doorway open so you can see both directions at once.
+
+That's what this project does. It doesn't vote. It doesn't synthesize. It shows you where the maps diverge and lets you—the agent actually standing in the doorway, actually making the decision—use that divergence as signal.
 
 ---
 
