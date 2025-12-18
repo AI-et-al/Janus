@@ -1,60 +1,40 @@
 {
   "name": "janus",
   "version": "0.1.0",
-  "description": "Multi-Model AI Council Orchestration System — Watch frontier models deliberate",
-  "type": "module",
+  "description": "Multi-model AI orchestration system with persistent context",
   "main": "dist/cli.js",
-  "bin": {
-    "janus": "./dist/cli.js"
-  },
+  "type": "module",
   "scripts": {
     "build": "tsc",
     "dev": "tsx src/cli.ts",
-    "janus": "tsx src/cli.ts",
-    "council": "tsx src/cli.ts council",
-    "scout": "tsx src/cli.ts scout",
-    "sync": "./scripts/sync-context.sh",
-    "run-tasks": "tsx src/cli.ts run-delegations",
     "test": "vitest",
-    "lint": "eslint src/",
-    "format": "prettier --write src/"
+    "janus": "tsx src/cli.ts",
+    "clean": "rm -rf dist"
+  },
+  "bin": {
+    "janus": "./dist/cli.js"
   },
   "keywords": [
     "ai",
-    "llm",
-    "multi-model",
     "orchestration",
-    "claude",
-    "gpt",
-    "gemini",
-    "deliberation",
-    "council"
+    "multi-model",
+    "agents",
+    "deliberation"
   ],
-  "author": "Dave Smith <anterograde.zen@gmail.com>",
+  "author": "AI-et-al",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/AI-et-al/janus.git"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
-    "@google/generative-ai": "^0.21.0",
-    "chalk": "^5.3.0",
-    "commander": "^12.1.0",
-    "dotenv": "^16.4.5",
-    "openai": "^4.77.0",
-    "ora": "^8.1.0",
-    "zod": "^3.24.0"
+    "@anthropic-ai/sdk": "^0.65.0",
+    "openai": "^4.56.0",
+    "dotenv": "^16.0.0",
+    "uuid": "^9.0.0",
+    "axios": "^1.7.0"
   },
   "devDependencies": {
-    "@types/node": "^22.10.0",
-    "tsx": "^4.19.2",
+    "@types/node": "^20.0.0",
+    "@types/uuid": "^9.0.0",
     "typescript": "^5.6.3",
-    "vitest": "^2.1.0",
-    "eslint": "^9.0.0",
-    "prettier": "^3.4.0"
+    "tsx": "^4.0.0",
+    "vitest": "^1.0.0"
   }
 }

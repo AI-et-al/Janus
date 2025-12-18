@@ -1,253 +1,137 @@
 #!/usr/bin/env node
+
 /**
  * Janus CLI
- * Multi-Model AI Council Orchestration System
+ *
+ * Command-line interface for the Janus orchestration system
  */
 
-import { Command } from 'commander';
-import chalk from 'chalk';
-import ora from 'ora';
-import { config } from 'dotenv';
-import { readFile, writeFile } from 'fs/promises';
-import { existsSync } from 'fs';
-import { join } from 'path';
+import * as dotenv from 'dotenv';
+import { ContextBridge } from './context-bridge/index.js';
+import JanusOrchestrator from './orchestrator.js';
 
-import type { CurrentFocus, Deliberation } from './types.js';
+dotenv.config();
 
-// Load environment
-config();
+const bridge = new ContextBridge();
+const orchestrator = new JanusOrchestrator();
 
-const CONTEXT_ROOT = process.env.JANUS_CONTEXT_ROOT || './janus-context';
+const commands: Record<string, (args: string[]) => Promise<void>> = {
+  async execute([task]) {
+    if (!task) {
+      console.error('Usage: janus execute <task description>');
+      process.exit(1);
+    }
 
-const program = new Command();
-
-program
-  .name('janus')
-  .description(chalk.bold('Multi-Model AI Council Orchestration System') + '\n' +
-    chalk.dim('Watch frontier models deliberate. See where they agree. See where they disagree.'))
-  .version('0.1.0');
-
-// =============================================================================
-// Focus Command - Show current focus from context store
-// =============================================================================
-
-program
-  .command('focus')
-  .description('Show current focus from context store')
-  .action(async () => {
     try {
-      const focusPath = join(CONTEXT_ROOT, 'state/current-focus.json');
-      
-      if (!existsSync(focusPath)) {
-        console.log(chalk.yellow('No focus set. Initialize with: janus init'));
-        return;
-      }
-      
-      const content = await readFile(focusPath, 'utf-8');
-      const focus: CurrentFocus = JSON.parse(content);
-      
-      console.log(chalk.bold('\n📍 Current Focus\n'));
-      console.log(chalk.blue('Objective:'), focus.objective);
-      console.log(chalk.blue('Phase:'), focus.phase);
-      console.log(chalk.blue('Blockers:'), focus.blockers.length > 0 
-        ? focus.blockers.join(', ') 
-        : chalk.green('None'));
-      console.log(chalk.blue('Next Actions:'));
-      focus.nextActions.forEach((action, i) => {
-        console.log(chalk.dim(`  ${i + 1}.`), action);
-      });
-      console.log();
+      const sessionId = await orchestrator.executeTask(task);
+      console.log(`\n✅ Task execution complete`);
+      console.log(`   Session: ${sessionId.substring(0, 8)}...`);
+
+      const budget = orchestrator.getBudgetStatus();
+      console.log(`\n💰 Budget Status:`);
+      console.log(`   Monthly: $${budget.monthlyBudget}`);
+      console.log(`   Spent: $${budget.spent.toFixed(2)}`);
+      console.log(`   Remaining: $${budget.remaining.toFixed(2)}`);
+      console.log(`   Used: ${budget.percentageUsed.toFixed(1)}%`);
     } catch (error) {
-      console.error(chalk.red('Error reading focus:'), error);
+      console.error('❌ Task execution failed:', error);
+      process.exit(1);
     }
-  });
+  },
 
-// =============================================================================
-// Council Command - Convene the Council for deliberation
-// =============================================================================
+  async info() {
+    console.log('\n🔱 Janus Multi-Model AI Orchestration System');
+    console.log('Version: 0.1.0 (Development)');
+    console.log('Status: Context Bridge Foundation');
+    console.log('\nUsage:');
+    console.log('  janus execute <task>  - Execute a task');
+    console.log('  janus sessions        - List all sessions');
+    console.log('  janus focus           - Show current focus');
+    console.log('  janus history         - Show git history');
+    console.log('  janus info            - Show this help');
+  },
 
-program
-  .command('council')
-  .description('Convene the Council to deliberate on a task')
-  .argument('<task>', 'The task to deliberate on')
-  .option('-o, --output <file>', 'Write results to file')
-  .action(async (task: string, options: { output?: string }) => {
-    const spinner = ora('Convening the Council...').start();
-    
-    // Check for API keys
-    const hasAnthropic = !!process.env.ANTHROPIC_API_KEY;
-    const hasOpenAI = !!process.env.OPENAI_API_KEY;
-    const hasGoogle = !!process.env.GOOGLE_API_KEY;
-    
-    if (!hasAnthropic && !hasOpenAI && !hasGoogle) {
-      spinner.fail('No API keys configured');
-      console.log(chalk.yellow('\nConfigure API keys in .env file:'));
-      console.log(chalk.dim('  ANTHROPIC_API_KEY=sk-ant-...'));
-      console.log(chalk.dim('  OPENAI_API_KEY=sk-...'));
-      console.log(chalk.dim('  GOOGLE_API_KEY=AI...'));
+  async sessions() {
+    const sessions = await bridge.listSessions();
+    console.log(`\n📚 Sessions (${sessions.length} total):`);
+
+    if (sessions.length === 0) {
+      console.log('   No sessions yet');
       return;
     }
-    
-    spinner.text = 'Council deliberation not yet implemented';
-    spinner.info();
-    
-    console.log(chalk.bold('\n🏛 Council Deliberation\n'));
-    console.log(chalk.blue('Task:'), task);
-    console.log();
-    console.log(chalk.yellow('Implementation Status:'));
-    console.log(chalk.dim('  [ ] Claude adapter'));
-    console.log(chalk.dim('  [ ] GPT adapter'));
-    console.log(chalk.dim('  [ ] Gemini adapter'));
-    console.log(chalk.dim('  [ ] Parallel execution'));
-    console.log(chalk.dim('  [ ] Disagreement detection'));
-    console.log(chalk.dim('  [ ] Synthesis'));
-    console.log();
-    console.log(chalk.dim('See ARCHITECTURE.md for implementation roadmap.'));
-  });
 
-// =============================================================================
-// Scout Command - Send scouts to verify resources
-// =============================================================================
+    for (const sessionId of sessions) {
+      try {
+        const session = await bridge.loadSession(sessionId);
+        console.log(`  - ${session.id.substring(0, 8)}... (${session.started})`);
+        console.log(`    ${session.summary}`);
+      } catch (error) {
+        console.log(`  - ${sessionId} (error loading)`);
+      }
+    }
+  },
 
-program
-  .command('scout')
-  .description('Send scouts to verify resources')
-  .argument('<query>', 'What to search for')
-  .action(async (query: string) => {
-    const spinner = ora('Dispatching scouts...').start();
-    
-    if (!process.env.ANTHROPIC_API_KEY) {
-      spinner.fail('ANTHROPIC_API_KEY required for scout swarm');
+  async focus() {
+    const focus = await bridge.getCurrentFocus();
+    console.log('\n🎯 Current Focus:');
+    console.log(`  Objective: ${focus.objective}`);
+    console.log(`  Phase: ${focus.phase}`);
+
+    if (focus.blockers.length > 0) {
+      console.log(`  Blockers: ${focus.blockers.join(', ')}`);
+    }
+
+    if (focus.nextActions.length > 0) {
+      console.log('  Next Actions:');
+      focus.nextActions.forEach((action: string) => {
+        console.log(`    • ${action}`);
+      });
+    }
+  },
+
+  async history() {
+    const history = await bridge.getHistory();
+    console.log('\n📜 Context Git History:');
+
+    if (history.length === 0) {
+      console.log('   No commits yet');
       return;
     }
-    
-    spinner.text = 'Scout swarm not yet implemented';
-    spinner.info();
-    
-    console.log(chalk.bold('\n🔭 Scout Mission\n'));
-    console.log(chalk.blue('Query:'), query);
-    console.log();
-    console.log(chalk.yellow('Implementation Status:'));
-    console.log(chalk.dim('  [ ] Haiku agent setup'));
-    console.log(chalk.dim('  [ ] Parallel execution'));
-    console.log(chalk.dim('  [ ] URL verification'));
-    console.log(chalk.dim('  [ ] Stale resource detection'));
-    console.log();
-    console.log(chalk.dim('See ARCHITECTURE.md for implementation roadmap.'));
-  });
 
-// =============================================================================
-// Run-Delegations Command - Execute pending tasks from context store
-// =============================================================================
+    history.slice(0, 10).forEach((line: string) => {
+      console.log(`  ${line}`);
+    });
 
-program
-  .command('run-delegations')
-  .description('Execute pending tasks from the context store')
-  .action(async () => {
-    const delegationsDir = join(CONTEXT_ROOT, 'state/delegations');
-    
-    if (!existsSync(delegationsDir)) {
-      console.log(chalk.yellow('No delegations directory. Initialize first.'));
-      return;
+    if (history.length > 10) {
+      console.log(`  ... and ${history.length - 10} more`);
     }
-    
-    console.log(chalk.bold('\n⚡ Running Delegations\n'));
-    console.log(chalk.dim('Checking for pending tasks in:'), delegationsDir);
-    console.log();
-    console.log(chalk.yellow('Task runner not yet implemented.'));
-    console.log(chalk.dim('See ARCHITECTURE.md for implementation roadmap.'));
-  });
+  }
+};
 
-// =============================================================================
-// Sync Command - Sync context store with remote
-// =============================================================================
+async function main() {
+  const [command, ...args] = process.argv.slice(2);
 
-program
-  .command('sync')
-  .description('Sync context store with remote')
-  .action(async () => {
-    const spinner = ora('Syncing context...').start();
-    
-    if (!existsSync(join(CONTEXT_ROOT, '.git'))) {
-      spinner.fail('Context store is not a git repository');
-      console.log(chalk.dim('\nInitialize with:'));
-      console.log(chalk.dim('  cd janus-context && git init'));
-      return;
-    }
-    
-    spinner.text = 'Context sync not yet implemented';
-    spinner.info();
-    
-    console.log(chalk.dim('\nWill run:'));
-    console.log(chalk.dim('  git -C janus-context pull --rebase'));
-    console.log(chalk.dim('  git -C janus-context add -A'));
-    console.log(chalk.dim('  git -C janus-context commit -m "Auto-sync"'));
-    console.log(chalk.dim('  git -C janus-context push'));
-  });
+  if (!command || command === '-h' || command === '--help') {
+    await commands.info([]);
+    process.exit(0);
+  }
 
-// =============================================================================
-// Info Command - Show system information
-// =============================================================================
+  const handler = commands[command];
+  if (!handler) {
+    console.error(`❌ Unknown command: ${command}`);
+    console.log('\nAvailable commands:');
+    Object.keys(commands).forEach(cmd => {
+      console.log(`  - janus ${cmd}`);
+    });
+    process.exit(1);
+  }
 
-program
-  .command('info')
-  .description('Show system information and configuration')
-  .action(async () => {
-    console.log(chalk.bold('\n⚙️  Janus Configuration\n'));
-    
-    // API Keys
-    console.log(chalk.blue('API Keys:'));
-    console.log('  Anthropic:', process.env.ANTHROPIC_API_KEY 
-      ? chalk.green('✓ configured') 
-      : chalk.red('✗ missing'));
-    console.log('  OpenAI:', process.env.OPENAI_API_KEY 
-      ? chalk.green('✓ configured') 
-      : chalk.red('✗ missing'));
-    console.log('  Google:', process.env.GOOGLE_API_KEY 
-      ? chalk.green('✓ configured') 
-      : chalk.red('✗ missing'));
-    
-    // Context Store
-    console.log();
-    console.log(chalk.blue('Context Store:'));
-    console.log('  Path:', CONTEXT_ROOT);
-    console.log('  Exists:', existsSync(CONTEXT_ROOT) 
-      ? chalk.green('✓') 
-      : chalk.red('✗'));
-    console.log('  Git:', existsSync(join(CONTEXT_ROOT, '.git')) 
-      ? chalk.green('✓ initialized') 
-      : chalk.yellow('○ not initialized'));
-    
-    // Models
-    console.log();
-    console.log(chalk.blue('Models:'));
-    console.log('  Claude:', process.env.CLAUDE_MODEL || 'claude-opus-4-5-20251101');
-    console.log('  GPT:', process.env.GPT_MODEL || 'gpt-5.1');
-    console.log('  Gemini:', process.env.GEMINI_MODEL || 'gemini-3-pro');
-    console.log('  Orchestrator:', process.env.ORCHESTRATOR_MODEL || 'claude-sonnet-4-5-20250929');
-    console.log('  Swarm:', process.env.SWARM_MODEL || 'claude-3-5-haiku-20241022');
-    
-    console.log();
-  });
+  try {
+    await handler(args);
+  } catch (error) {
+    console.error('❌ Error:', error);
+    process.exit(1);
+  }
+}
 
-// =============================================================================
-// Default action - show help
-// =============================================================================
-
-program.action(() => {
-  console.log(chalk.bold('\n🏛 JANUS'));
-  console.log(chalk.dim('Multi-Model AI Council Orchestration System\n'));
-  
-  console.log(chalk.yellow('Commands:'));
-  console.log('  janus focus          Show current focus');
-  console.log('  janus council <task> Convene the Council');
-  console.log('  janus scout <query>  Send scouts to verify resources');
-  console.log('  janus run-delegations Execute pending tasks');
-  console.log('  janus sync           Sync context with remote');
-  console.log('  janus info           Show configuration');
-  console.log();
-  console.log(chalk.dim('Run "janus --help" for more information.'));
-  console.log();
-});
-
-program.parse();
+main();
