@@ -136,11 +136,11 @@ janus/
 └── src/
     ├── cli.ts            # Entry point
     ├── types.ts          # TypeScript interfaces
-    ├── context-bridge/   # TODO
-    ├── orchestrator/     # TODO
-    ├── swarms/{scout,council,executor}/  # TODO
-    ├── providers/        # TODO
-    └── utils/            # TODO
+    ├── context-bridge/   # Git-backed state & session management
+    ├── orchestrator/     # Main orchestration engine
+    ├── swarms/{scout,council,executor}/  # Multi-model AI swarms
+    ├── providers/        # API adapters (Claude, GPT, Gemini)
+    └── utils/            # Shared utilities & helpers
 ```
 
 ---
