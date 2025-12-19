@@ -1,10 +1,16 @@
 # JANUS
-<img width="256" height="256" alt="icon" src="https://github.com/user-attachments/assets/ef1f5d6a-119c-4607-ad1a-5b6774a68a84" />
+
 
 
 **Multi-Model AI Orchestration with Persistent Context and Bounded Execution**
+---
+
+
+![profile](https://github.com/user-attachments/assets/2adf088a-4ff7-431a-8325-75ba539cbf56)
+
 
 ---
+
 <img width="757" height="375" alt="image" src="https://github.com/user-attachments/assets/7db11af1-2e6c-49a2-abe2-9917da644919" />
 
 
