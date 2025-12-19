@@ -49,18 +49,18 @@ ANTHROPIC_API_KEY=sk-ant-...
 # Optional (recommended for multi-cloud)
 OPENAI_API_KEY=sk-...
 OPENROUTER_API_KEY=sk-or-...
-GITHUB_TOKEN=ghp_...
 
 # Janus Configuration
-JANUS_CONTEXT_PATH=./janus-context
-JANUS_LOG_LEVEL=debug
+JANUS_CONTEXT_ROOT=./janus-context
+LOG_LEVEL=info
 JANUS_BUDGET_MONTHLY=150
-JANUS_AUTO_SYNC=true
-
-# Feature Flags
 ENABLE_COST_OPTIMIZATION=true
-ENABLE_DETAILED_LOGGING=true
-ENABLE_MANIFESTO_INJECTION=true
+
+# Additional optional settings
+TRACK_COSTS=true
+MAX_SESSION_COST=50.00
+API_PORT=3000
+WS_PORT=3001
 ```
 
 ### Build and Run
