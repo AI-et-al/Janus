@@ -206,7 +206,7 @@ janus/
 - **Strategic Layer**: Opus 4.5 (human interaction, architecture)
 
 ### Budget Management
-- **Default Monthly Budget**: $150
+- **Default Monthly Budget**: $100-150 (configurable)
 - **Automatic Enforcement**: Hard limit at configured budget
 - **Cost Tracking**: Per operation, per model, per session
 - **Smart Routing**: Automatic downgrade to cheaper models when budget constrained
