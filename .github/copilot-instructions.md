@@ -206,8 +206,9 @@ janus/
 - **Strategic Layer**: Opus 4.5 (human interaction, architecture)
 
 ### Budget Management
-- **Default Monthly Budget**: $100-150 (configurable)
-- **Automatic Enforcement**: Hard limit at configured budget
+- **Recommended Monthly Budget**: $100-150 (configurable)
+- **Hard Limit**: $150/month (automatic enforcement)
+- **Target Actual Spend**: $80-120/month
 - **Cost Tracking**: Per operation, per model, per session
 - **Smart Routing**: Automatic downgrade to cheaper models when budget constrained
 
@@ -273,12 +274,12 @@ When making changes that affect user interaction, update the relevant documentat
 ## Integration Points
 
 ### External Projects (as documented in COMPONENT_ARCHITECTURE.md)
-1. **llm-council**: Multi-model deliberation engine
-2. **claudelytics**: Cost tracking and analytics
-3. **agentic-flow**: Agent framework and learning systems
-4. **Claude Agent SDK**: Subagent coordination
+1. **llm-council**: Multi-model deliberation engine (Python FastAPI)
+2. **claudelytics**: Cost tracking and analytics (Rust CLI)
+3. **agentic-flow**: Agent framework and learning systems (TypeScript)
+4. **Claude Agent SDK**: Anthropic's API for subagent spawning and coordination
 
-These are integrated via git submodules or npm packages.
+These are integrated via git submodules, npm packages, or direct API integration.
 
 ## Performance Considerations
 
@@ -316,7 +317,7 @@ These are integrated via git submodules or npm packages.
 
 📋 Planned (Weeks 2-5):
 - Week 2: Swarms (Scout, Council, Executor)
-- Week 3: Memory Integration (Claude-OS)
+- Week 3: Memory Integration (agentic-flow ReasoningBank)
 - Week 4: Analytics (Claudelytics)
 - Week 5: Optimization
 
