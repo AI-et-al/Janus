@@ -291,7 +291,7 @@ These are integrated via git submodules, npm packages, or direct API integration
 ## Debugging
 
 ### Logging
-- Set `JANUS_LOG_LEVEL=debug` for detailed logs
+- Set `LOG_LEVEL=debug` for detailed logs (options: error, warn, info, debug, trace)
 - Logs include: operations, errors, performance metrics, costs
 - Format: Structured JSON with timestamps
 - Output: Console + file logs in `logs/` directory
