@@ -5,10 +5,6 @@
 **Multi-Model AI Orchestration with Persistent Context and Bounded Execution**
 ---
 
-![image_13e72624 (1)](https://github.com/user-attachments/assets/51d7f054-ca99-4447-b6f1-6e93a3d4cc66)
-
----
-
 <img width="757" height="375" alt="image" src="https://github.com/user-attachments/assets/7db11af1-2e6c-49a2-abe2-9917da644919" />
 
 
