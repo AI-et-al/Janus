@@ -108,21 +108,37 @@ If you ask Janus for TypeScript, you get TypeScript. If you ask for minimal depe
 
 This is early. The architecture is documented, the types are defined, the scaffolding exists. The interesting parts—Council deliberation protocol, disagreement detection, observable UI—are not yet implemented.
 
-What exists:
+**What exists:**
 - [x] Vision and architecture documentation
-- [x] TypeScript project scaffold
+- [x] TypeScript project scaffold with dependencies installed
 - [x] Context Bridge design
 - [x] MANIFESTO (rules for subagents)
 - [x] CLI skeleton
+- [x] [CLAUDE.md](./CLAUDE.md) — AI assistant guide for contributors
+- [x] GitHub Actions for Claude Code integration (PR reviews, issue triage)
+- [x] Context sync script (`scripts/sync-context.sh`)
 
-What doesn't:
-- [ ] Council deliberation implementation  
-- [ ] Multi-model API adapters
-- [ ] Disagreement detection
+**What's next:**
+- [ ] Context Bridge implementation (`src/context-bridge/`)
+- [ ] Council deliberation protocol (`src/swarms/council/`)
+- [ ] Multi-model API adapters (`src/providers/`)
+- [ ] Disagreement detection algorithm
+- [ ] Scout swarm (`src/swarms/scout/`)
+- [ ] Executor swarm (`src/swarms/executor/`)
 - [ ] Observable deliberation UI
-- [ ] Scout and Executor swarms
+- [ ] Test suite
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full design.
+
+---
+
+## Recent Updates
+
+**2025-12-21**
+- Added `CLAUDE.md` — comprehensive guide for AI assistants working on this codebase
+- Created `scripts/sync-context.sh` for Context Bridge synchronization
+- Fixed GitHub Actions workflow permissions for PR commenting
+- Installed npm dependencies and generated lockfile
 
 ---
 
