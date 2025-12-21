@@ -34,7 +34,7 @@ From the README:
 - Transparency over impressiveness
 
 ### 2. Constraints Are Sacred
-From the MANIFESTO (see `MANIFESTO.md:31-35`):
+From the MANIFESTO (see `MANIFESTO.md:30-35`):
 > When the human specifies a constraint, treat it as **sacred**:
 > - "Must use OAuth 2.0" means OAuth 2.0, not "here's why you should consider alternatives"
 
@@ -52,7 +52,7 @@ The Council doesn't vote or synthesize into consensus mush. It **surfaces disagr
 - Your uncertainty is valuable data
 
 ### 4. The Draconian Scout Protocol
-From the MANIFESTO (see `MANIFESTO.md:38-47`):
+From the MANIFESTO (see `MANIFESTO.md:37-47`):
 > If you cannot provide a working URL or install command, **do not mention the resource**. Speculation is forbidden. Hallucination is betrayal.
 
 **Implementation guideline:**
@@ -184,7 +184,7 @@ Before making significant changes:
 
 ### When Implementing Council Protocol
 
-See `ARCHITECTURE.md:255-317` for the full Council implementation pattern. Key points:
+See `ARCHITECTURE.md:284-317` for the full Council implementation pattern. Key points:
 - Parallel API calls to Claude, GPT, Gemini
 - Structured proposal parsing with confidence levels
 - Disagreement detection (don't hide divergence!)
@@ -374,7 +374,7 @@ When responding as a Council member, use this format (from `MANIFESTO.md:111-130
 
 ## Next Implementation Priorities
 
-According to `ARCHITECTURE.md:421-466`, the implementation phases:
+According to `ARCHITECTURE.md:420-466`, the implementation phases:
 
 **Phase 1: Context Bridge** (highest priority)
 - Implement state read/write to `janus-context/`

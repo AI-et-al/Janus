@@ -7,6 +7,9 @@
 # - Validates JSON state files
 # - Optionally commits and pushes changes
 #
+# Dependencies:
+# - Python 3 (for JSON validation)
+#
 # Usage: ./scripts/sync-context.sh [--commit] [--push]
 
 set -euo pipefail
