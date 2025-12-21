@@ -13,7 +13,15 @@ import JanusOrchestrator from './orchestrator.js';
 dotenv.config();
 
 const bridge = new ContextBridge();
-const orchestrator = new JanusOrchestrator();
+let orchestrator: JanusOrchestrator | null = null;
+
+// Lazy initialization of orchestrator (requires API keys)
+function getOrchestrator(): JanusOrchestrator {
+  if (!orchestrator) {
+    orchestrator = new JanusOrchestrator();
+  }
+  return orchestrator;
+}
 
 const commands: Record<string, (args: string[]) => Promise<void>> = {
   async execute([task]) {
@@ -23,11 +31,12 @@ const commands: Record<string, (args: string[]) => Promise<void>> = {
     }
 
     try {
-      const sessionId = await orchestrator.executeTask(task);
+      const orch = getOrchestrator();
+      const sessionId = await orch.executeTask(task);
       console.log(`\n✅ Task execution complete`);
       console.log(`   Session: ${sessionId.substring(0, 8)}...`);
 
-      const budget = orchestrator.getBudgetStatus();
+      const budget = orch.getBudgetStatus();
       console.log(`\n💰 Budget Status:`);
       console.log(`   Monthly: $${budget.monthlyBudget}`);
       console.log(`   Spent: $${budget.spent.toFixed(2)}`);
@@ -39,11 +48,23 @@ const commands: Record<string, (args: string[]) => Promise<void>> = {
     }
   },
 
+  async hello() {
+    console.log('\n👋 Yes, I am communicating with you!');
+    console.log('\n🔱 Janus is operational and ready to assist.');
+    console.log('\nI can help you with:');
+    console.log('  • Multi-model AI orchestration');
+    console.log('  • Task execution across Claude, GPT, and other models');
+    console.log('  • Persistent context management');
+    console.log('  • Cost-aware model routing');
+    console.log('\nTry: janus info    - for more commands');
+  },
+
   async info() {
     console.log('\n🔱 Janus Multi-Model AI Orchestration System');
     console.log('Version: 0.1.0 (Development)');
     console.log('Status: Context Bridge Foundation');
     console.log('\nUsage:');
+    console.log('  janus hello           - Verify communication');
     console.log('  janus execute <task>  - Execute a task');
     console.log('  janus sessions        - List all sessions');
     console.log('  janus focus           - Show current focus');
