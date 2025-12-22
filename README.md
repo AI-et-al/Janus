@@ -5,7 +5,7 @@
 <h1 align="center">Janus</h1>
 
 <p align="center">
-  <strong>Multi-Model AI Orchestration System</strong>
+  <strong>Long-Horizon Autonomous Task Execution via Multi-Model Orchestration</strong>
 </p>
 
 <p align="center">
@@ -25,18 +25,28 @@
 </p>
 
 <p align="center">
-  <a href="#features">Features</a> •
-  <a href="#quick-start">Quick Start</a> •
+  <a href="#the-problem">The Problem</a> •
+  <a href="#the-solution">The Solution</a> •
+  <a href="#integrated-systems">Systems</a> •
   <a href="#architecture">Architecture</a> •
-  <a href="#components">Components</a> •
-  <a href="#roadmap">Roadmap</a>
+  <a href="#frontier-models-december-2025">Models</a>
 </p>
 
 ---
 
-## About
+## The Problem
 
-**Janus** (named after the Roman god with two faces) coordinates multiple AI models working in parallel. When Claude and GPT disagree, that's not noise—it's the most valuable signal the system can provide.
+Today's AI assistants forget everything between sessions. You explain your codebase architecture, your preferences, your project history—and next conversation, it's gone. You're perpetually re-onboarding your AI collaborator.
+
+Beyond memory, single-model systems create blind spots. One model's confident mistake becomes your confident mistake. And when things go wrong, the reasoning is opaque—you see outputs but not the decision process that produced them.
+
+**Session Amnesia** • **Single-Model Bottleneck** • **Opacity**
+
+## The Solution
+
+**Janus** (named after the Roman god who looks both forward and backward) treats context as infrastructure, not ephemera. Every session builds on previous sessions. Decisions persist. Learnings accumulate.
+
+When Claude and GPT disagree, that's not noise—it's the most valuable signal the system can provide. Janus surfaces disagreement rather than synthesizing false consensus.
 
 Part of **[AI et al.](https://github.com/AI-et-al)** — a cooperative of humans and AI building meaningful tools together.
 
@@ -103,7 +113,17 @@ npm run janus info
 
 ---
 
-## Components
+## Integrated Systems
+
+| System | Purpose |
+|--------|---------|
+| **[claude-mem](./claude-mem)** | Persistent cross-session memory. Every observation, decision, and learning persists across sessions via SQLite + git sync. |
+| **[claudelytics](./claudelytics)** | Usage analytics and cost tracking. Real-time dashboards showing token usage, costs, and model performance. |
+| **[llm-council](./llm-council)** | Multi-model deliberation. Routes queries to Claude, GPT, and Gemini, synthesizes responses, surfaces disagreements. |
+| **[agentic-flow](./agentic-flow)** | Workflow orchestration. Swarm coordination, parallel agent execution, and task decomposition. |
+| **[janus-dashboard](./janus-dashboard)** | Real-time monitoring UI. Glassmorphism design with live system status and session tracking. |
+
+## Core Components
 
 | Component | Purpose | Status |
 |-----------|---------|--------|
@@ -112,6 +132,16 @@ npm run janus info
 | **Orchestrator** | Main execution engine | Active |
 | **CLI Interface** | Command-line access | Active |
 | **Swarms** | Parallel agent execution | Planned |
+
+## Frontier Models (December 2025)
+
+| Provider | Flagship | Fast |
+|----------|----------|------|
+| **Anthropic** | Claude Opus 4.5 | Claude Haiku 4.5 |
+| **OpenAI** | GPT-5.2 Pro | GPT-5.2 Instant |
+| **Google** | Gemini 3 | Gemini 3 Flash |
+
+Janus automatically routes to the optimal model based on task complexity, cost constraints, and capability requirements.
 
 ---
 
