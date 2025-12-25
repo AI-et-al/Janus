@@ -11,6 +11,7 @@
 
 import { ContextBridge, Session, Task, Decision } from './context-bridge/index.js';
 import ModelRouter from './model-router.js';
+import { ScoutSwarm, ScoutTask } from './swarms/scout/index.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface ExecutionPlan {
@@ -34,11 +35,13 @@ export interface ExecutionStep {
 export class JanusOrchestrator {
   private contextBridge: ContextBridge;
   private modelRouter: ModelRouter;
+  private scoutSwarm: ScoutSwarm;
   private currentSession: Session | null = null;
 
   constructor() {
     this.contextBridge = new ContextBridge();
     this.modelRouter = new ModelRouter();
+    this.scoutSwarm = new ScoutSwarm();
   }
 
   /**
@@ -146,10 +149,23 @@ export class JanusOrchestrator {
         console.log(`      Cost: $${routing.estimatedCost.toFixed(6)}`);
         console.log(`      Reason: ${routing.rationale}`);
 
-        // In Week 2, this will actually call the swarms
-        // For now, simulate completion
+        if (step.type === 'scout') {
+          console.log(`      ⚡ Engaging Scout Swarm...`);
+          const task: ScoutTask = {
+            id: uuidv4(),
+            query: step.description,
+            type: 'general-query'
+          };
+          const results = await this.scoutSwarm.execute([task]);
+          step.result = JSON.stringify(results, null, 2);
+          console.log(`      📝 Scout Results: ${results.length} items received`);
+        } else {
+          // In Week 2, this will actually call the swarms
+          // For now, simulate completion
+          step.result = `[Mock] Completed ${step.type} step`;
+        }
+
         step.status = 'complete';
-        step.result = `[Mock] Completed ${step.type} step`;
 
         // Update budget
         this.modelRouter.updateBudget(routing.estimatedCost);
