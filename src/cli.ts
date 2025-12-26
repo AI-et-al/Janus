@@ -9,6 +9,7 @@
 import * as dotenv from 'dotenv';
 import { ContextBridge } from './context-bridge/index.js';
 import JanusOrchestrator from './orchestrator.js';
+import { OllamaCloud } from './ollama-cloud.js';
 
 dotenv.config();
 
@@ -69,6 +70,7 @@ const commands: Record<string, (args: string[]) => Promise<void>> = {
     console.log('  janus sessions        - List all sessions');
     console.log('  janus focus           - Show current focus');
     console.log('  janus history         - Show git history');
+    console.log('  janus ollama          - Ollama cloud commands');
     console.log('  janus info            - Show this help');
   },
 
@@ -125,6 +127,121 @@ const commands: Record<string, (args: string[]) => Promise<void>> = {
 
     if (history.length > 10) {
       console.log(`  ... and ${history.length - 10} more`);
+    }
+  },
+
+  async ollama(args: string[]) {
+    const subcommand = args[0];
+    const baseUrl = process.env.OLLAMA_BASE_URL;
+    const apiKey = process.env.OLLAMA_API_KEY || '';
+    const defaultModel = process.env.OLLAMA_MODEL || 'glm4:latest';
+
+    if (!baseUrl) {
+      console.error('❌ OLLAMA_BASE_URL not configured in .env');
+      console.log('\nAdd to your .env file:');
+      console.log('  OLLAMA_BASE_URL=http://localhost:11434');
+      console.log('  OLLAMA_API_KEY=your-api-key  # if required');
+      console.log('  OLLAMA_MODEL=glm4:latest');
+      process.exit(1);
+    }
+
+    const client = new OllamaCloud({ apiKey, baseUrl });
+
+    switch (subcommand) {
+      case 'test':
+        console.log(`\n🔌 Testing Ollama connection to ${baseUrl}...`);
+        try {
+          const models = await client.listModels();
+          console.log('✅ Connection successful!');
+          console.log(`\n📦 Available models (${models.length}):`);
+          models.forEach(m => {
+            const size = (m.size / 1e9).toFixed(1);
+            console.log(`  - ${m.name} (${size} GB)`);
+          });
+        } catch (error: any) {
+          console.error('❌ Connection failed:', error.message);
+          process.exit(1);
+        }
+        break;
+
+      case 'models':
+        console.log(`\n📦 Fetching models from ${baseUrl}...`);
+        try {
+          const models = await client.listModels();
+          if (models.length === 0) {
+            console.log('   No models available. Pull a model first:');
+            console.log('   ollama pull glm4');
+            return;
+          }
+          models.forEach(m => {
+            const size = (m.size / 1e9).toFixed(1);
+            console.log(`  - ${m.name} (${size} GB)`);
+            if (m.details) {
+              console.log(`      Family: ${m.details.family}, Params: ${m.details.parameter_size}`);
+            }
+          });
+        } catch (error: any) {
+          console.error('❌ Failed to list models:', error.message);
+          process.exit(1);
+        }
+        break;
+
+      case 'chat':
+        const model = args[1] || defaultModel;
+        const message = args.slice(2).join(' ');
+
+        if (!message) {
+          console.error('Usage: janus ollama chat [model] <message>');
+          console.log(`  Default model: ${defaultModel}`);
+          console.log('\nExamples:');
+          console.log('  janus ollama chat "Hello, how are you?"');
+          console.log('  janus ollama chat glm4:latest "Explain quantum computing"');
+          process.exit(1);
+        }
+
+        console.log(`\n🤖 Chatting with ${model}...`);
+        console.log(`📝 You: ${message}\n`);
+
+        try {
+          const response = await client.chat(model, message);
+          console.log(`💬 ${model}:`);
+          console.log(response);
+        } catch (error: any) {
+          console.error('❌ Chat failed:', error.message);
+          process.exit(1);
+        }
+        break;
+
+      case 'generate':
+        const genModel = args[1] || defaultModel;
+        const prompt = args.slice(2).join(' ');
+
+        if (!prompt) {
+          console.error('Usage: janus ollama generate [model] <prompt>');
+          process.exit(1);
+        }
+
+        console.log(`\n🤖 Generating with ${genModel}...`);
+
+        try {
+          const response = await client.generate(genModel, prompt);
+          console.log(response);
+        } catch (error: any) {
+          console.error('❌ Generation failed:', error.message);
+          process.exit(1);
+        }
+        break;
+
+      default:
+        console.log('\n🦙 Ollama Cloud Commands:');
+        console.log(`  Base URL: ${baseUrl}`);
+        console.log(`  Default Model: ${defaultModel}`);
+        console.log(`  API Key: ${apiKey ? '(configured)' : '(not set)'}`);
+        console.log('\nUsage:');
+        console.log('  janus ollama test                     - Test connection');
+        console.log('  janus ollama models                   - List available models');
+        console.log('  janus ollama chat [model] <message>   - Chat with a model');
+        console.log('  janus ollama generate [model] <prompt> - Generate text');
     }
   }
 };
