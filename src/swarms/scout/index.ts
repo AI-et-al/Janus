@@ -50,7 +50,7 @@ export class ScoutSwarm {
 
   constructor() {
     this.anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY
+      apiKey: process.env.ANTHROPIC_API_KEY || 'dummy-key'
     });
   }
 
@@ -136,7 +136,6 @@ export class ScoutSwarm {
           verified,
           statusCode: response.status,
           url,
-          accessible: verified,
           redirected: response.request?.res?.responseUrl !== url
         },
         reasoning: verified 
@@ -148,7 +147,6 @@ export class ScoutSwarm {
         data: {
           verified: false,
           url,
-          accessible: false,
           error: error.message
         },
         reasoning: `Failed to access URL: ${error.message}`
