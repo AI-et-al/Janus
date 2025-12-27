@@ -10,9 +10,10 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+import { OllamaCloud, createOllamaClient } from './ollama-cloud.js';
 
-export type Provider = 'anthropic' | 'openai' | 'openrouter';
-export type Model = 'haiku' | 'sonnet' | 'opus' | 'gpt-4' | 'gpt-4-turbo';
+export type Provider = 'anthropic' | 'openai' | 'openrouter' | 'ollama';
+export type Model = 'haiku' | 'sonnet' | 'opus' | 'gpt-4' | 'gpt-4-turbo' | 'glm-4' | 'ollama-custom';
 
 interface ModelConfig {
   provider: Provider;
@@ -58,12 +59,25 @@ const MODEL_CONFIGS: Record<Model, ModelConfig> = {
     model: 'gpt-4-turbo-preview',
     costPerMTok: 10.0,
     costPerMTokOutput: 30.0
+  },
+  'glm-4': {
+    provider: 'ollama',
+    model: 'glm4:latest',  // GLM 4.7 via Ollama
+    costPerMTok: 0.0,      // Self-hosted = no API cost
+    costPerMTokOutput: 0.0
+  },
+  'ollama-custom': {
+    provider: 'ollama',
+    model: process.env.OLLAMA_MODEL || 'llama3.2',
+    costPerMTok: 0.0,
+    costPerMTokOutput: 0.0
   }
 };
 
 export class ModelRouter {
   private anthropic: Anthropic;
   private openai: OpenAI;
+  private ollama: OllamaCloud | null;
   private budgetRemaining: number;
   private enableCostOptimization: boolean;
 
@@ -75,6 +89,9 @@ export class ModelRouter {
     this.openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY
     });
+
+    // Initialize Ollama client if configured
+    this.ollama = createOllamaClient();
 
     this.budgetRemaining = parseFloat(process.env.JANUS_BUDGET_MONTHLY || '150');
     this.enableCostOptimization = process.env.ENABLE_COST_OPTIMIZATION === 'true';
@@ -176,7 +193,7 @@ export class ModelRouter {
   /**
    * Get the client for a specific provider
    */
-  getClient(provider: Provider): Anthropic | OpenAI | null {
+  getClient(provider: Provider): Anthropic | OpenAI | OllamaCloud | null {
     switch (provider) {
       case 'anthropic':
         return this.anthropic;
@@ -188,9 +205,18 @@ export class ModelRouter {
           apiKey: process.env.OPENROUTER_API_KEY,
           baseURL: 'https://openrouter.ai/api/v1'
         });
+      case 'ollama':
+        return this.ollama;
       default:
         return null;
     }
+  }
+
+  /**
+   * Get the Ollama client directly
+   */
+  getOllamaClient(): OllamaCloud | null {
+    return this.ollama;
   }
 
   /**
