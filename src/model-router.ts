@@ -69,11 +69,11 @@ export class ModelRouter {
 
   constructor() {
     this.anthropic = new Anthropic({
-      apiKey: process.env.ANTHROPIC_API_KEY
+      apiKey: process.env.ANTHROPIC_API_KEY || 'dummy-key'
     });
 
     this.openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY
+      apiKey: process.env.OPENAI_API_KEY || 'dummy-key'
     });
 
     this.budgetRemaining = parseFloat(process.env.JANUS_BUDGET_MONTHLY || '150');
