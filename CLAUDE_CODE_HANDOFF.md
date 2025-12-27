@@ -149,14 +149,15 @@ janus/
 
 | ✅ Done | ⬜ TODO |
 |---------|---------|
-| README with vision | Context Bridge implementation |
-| ARCHITECTURE document | Council deliberation protocol |
-| MANIFESTO rules | Claude/GPT/Gemini adapters |
-| TypeScript types | Disagreement detection |
-| CLI skeleton | Scout swarm |
-| Project scaffold | Executor swarm |
-| Janus pixel art | Observable UI |
-| Context Bridge design | Cost tracking |
+| README with vision | Council deliberation protocol |
+| ARCHITECTURE document | Claude/GPT/Gemini adapters |
+| MANIFESTO rules | Disagreement detection |
+| TypeScript types | Executor swarm |
+| CLI skeleton | Observable UI |
+| Project scaffold | Cost tracking (partial) |
+| Janus pixel art | |
+| Context Bridge implementation | |
+| Scout swarm | |
 
 ---
 

@@ -160,7 +160,7 @@ Janus automatically routes to the optimal model based on task complexity, cost c
 - [x] Model Router (multi-cloud routing)
 - [x] Orchestrator (session + plan execution)
 - [x] CLI (5 commands)
-- [ ] Scout Swarm (parallel research)
+- [x] Scout Swarm (parallel research)
 - [ ] Council Swarm (3-stage deliberation)
 - [ ] Analytics integration
 
