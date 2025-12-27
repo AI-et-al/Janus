@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="janus-color2.png" width="600" alt="Janus">
+  <img src="janus-color2png" width="600" alt="Janus">
 </p>
 
 <h1 align="center">Janus</h1>
@@ -1360,4 +1360,5 @@ MIT — see [LICENSE](./LICENSE)
   <em>Humans and AI, building together</em><br><br>
   <sub>Janus: Because context shouldn't be ephemeral</sub>
 </p>
+
 
