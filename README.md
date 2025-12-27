@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/AI-et-al/Janus-">
+  <a href="https://github.com/AI-et-al/Janus">
     <img src="https://img.shields.io/github/stars/AI-et-al/Janus-?style=social" alt="GitHub Stars">
   </a>
   <a href="https://github.com/AI-et-al/Janus-/blob/main/LICENSE">
@@ -1360,6 +1360,7 @@ MIT — see [LICENSE](./LICENSE)
   <em>Humans and AI, building together</em><br><br>
   <sub>Janus: Because context shouldn't be ephemeral</sub>
 </p>
+
 
 
 
