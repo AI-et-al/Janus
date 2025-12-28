@@ -15,17 +15,20 @@ export interface Session {
   keyDecisions: Decision[];
   openQuestions: string[];
   delegatedTasks: Task[];
+  modelsInvolved: string[];     // Track which models participated
 }
 
 export interface Decision {
   id: string;
-  timestamp: string;
+  timestamp: string;            // ISO8601 precise timestamp
+  date: string;                 // Human-readable date (YYYY-MM-DD)
   topic: string;
   decision: string;
   rationale: string;
   alternatives: string[];
-  madeBy: 'opus' | 'council' | 'human';
+  madeBy: 'opus' | 'sonnet' | 'haiku' | 'council' | 'human';
   reversible: boolean;
+  confidence: number;           // 0-100
 }
 
 export interface Task {
@@ -38,6 +41,9 @@ export interface Task {
   artifacts: string[];
   result?: string;
   error?: string;
+  model?: string;               // Model used for execution
+  duration?: number;            // Execution time in milliseconds
+  cost?: number;                // Cost in USD
 }
 
 export interface CurrentFocus {
@@ -45,7 +51,23 @@ export interface CurrentFocus {
   phase: string;
   blockers: string[];
   nextActions: string[];
-  lastUpdated?: string;
+  lastUpdated: string;          // ISO8601 - always track when focus was updated
+}
+
+// =============================================================================
+// Context Bridge Utilities
+// =============================================================================
+
+export interface TaskResult {
+  success: boolean;
+  message: string;
+  data?: unknown;
+}
+
+export interface ContextBridgeConfig {
+  contextPath: string;
+  autoSync: boolean;
+  logLevel: 'debug' | 'info' | 'warn' | 'error';
 }
 
 // =============================================================================
