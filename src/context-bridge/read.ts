@@ -6,7 +6,7 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { Session, Decision, Task, CurrentFocus } from './types.js';
+import { Session, Decision, Task, CurrentFocus } from '../types.js';
 
 const getContextPath = () => process.env.JANUS_CONTEXT_PATH || './janus-context';
 
@@ -112,11 +112,13 @@ function parseDecisionMarkdown(content: string, filename: string): Decision {
   return {
     id: filename.replace('.md', ''),
     date,
+    timestamp: new Date(date).toISOString(), // Derive from date
     topic: topic.replace(/-/g, ' '),
     decision: decisionMatch ? decisionMatch[1].trim() : '',
     rationale: rationaleMatch ? rationaleMatch[1].trim() : '',
     madeBy: 'human', // Default, would be extracted from frontmatter
     confidence: 80, // Default, would be extracted from frontmatter
+    reversible: true, // Default, would be extracted from frontmatter
     alternatives: alternativesMatch
       ? alternativesMatch[1]
         .split('\n')
