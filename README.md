@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="janus-color2.png" width="600" alt="Janus">
+  <img src="janus-color2.png" width="100%" alt="Janus">
 </p>
 
 <h1 align="center">Janus</h1>
@@ -9,9 +9,12 @@
 </p>
 
 <p align="center">
-  <img src="janus-dashboard/symposium-animated.gif" width="800" alt="The Symposium - AI et al.">
+  <img src="janus-ascii-animated.gif" width="800" alt="Janus">
 </p>
 
+<p align="center">
+  <img src="symposium-animated.gif" width="800" alt="The Symposium - AI et al.">
+</p>
 <p align="center">
   <a href="https://github.com/AI-et-al/Janus">
     <img src="https://img.shields.io/github/stars/AI-et-al/Janus-?style=social" alt="GitHub Stars">
@@ -1360,6 +1363,8 @@ MIT ΓÇö see [LICENSE](./LICENSE)
   <em>Humans and AI, building together</em><br><br>
   <sub>Janus: Because context shouldn't be ephemeral</sub>
 </p>
+
+
 
 
 
