@@ -25,12 +25,12 @@
 </p>
 
 <p align="center">
-  <a href="#the-problem">The Problem</a> •
-  <a href="#architecture">Architecture</a> •
-  <a href="#components">Components</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#configuration">Configuration</a> •
-  <a href="#usage">Usage</a> •
+  <a href="#the-problem">The Problem</a> ΓÇó
+  <a href="#architecture">Architecture</a> ΓÇó
+  <a href="#components">Components</a> ΓÇó
+  <a href="#installation">Installation</a> ΓÇó
+  <a href="#configuration">Configuration</a> ΓÇó
+  <a href="#usage">Usage</a> ΓÇó
   <a href="#api-reference">API Reference</a>
 </p>
 
@@ -40,7 +40,7 @@
 
 Contemporary LLM agents suffer from a fundamental limitation: **context amnesia**.
 
-Each session starts from zero. The insights discovered at 2 AM vanish by morning. The architectural decisions debated across three conversations exist only in scattered chat logs. The bug you fixed last week? The agent doesn't remember fixing it. The library you decided against using? It'll suggest it again tomorrow. The institutional knowledge that makes human teams effective—the accumulated understanding of "how we do things here"—simply doesn't transfer.
+Each session starts from zero. The insights discovered at 2 AM vanish by morning. The architectural decisions debated across three conversations exist only in scattered chat logs. The bug you fixed last week? The agent doesn't remember fixing it. The library you decided against using? It'll suggest it again tomorrow. The institutional knowledge that makes human teams effectiveΓÇöthe accumulated understanding of "how we do things here"ΓÇösimply doesn't transfer.
 
 This isn't a minor inconvenience. It's a structural barrier to genuine AI-augmented software engineering.
 
@@ -54,7 +54,7 @@ The cognitive overhead of context reconstruction dominates actual productive wor
 
 **Janus exists to solve this.**
 
-Named after the Roman god who simultaneously perceives past and future, Janus orchestrates multiple AI models while maintaining persistent memory across sessions, instances, and contexts. It looks backward—learning from every interaction, preserving decisions and their rationales—while looking forward—routing each task to the optimal model based on capability, cost, and current context.
+Named after the Roman god who simultaneously perceives past and future, Janus orchestrates multiple AI models while maintaining persistent memory across sessions, instances, and contexts. It looks backwardΓÇölearning from every interaction, preserving decisions and their rationalesΓÇöwhile looking forwardΓÇörouting each task to the optimal model based on capability, cost, and current context.
 
 ---
 
@@ -96,7 +96,7 @@ Different models excel at different tasks. GPT-5.2 writes better documentation. 
 
 ### 3. Observable Disagreement
 
-When you ask three frontier models the same architectural question, they often disagree. Most systems hide this—they pick one answer or try to synthesize a false consensus.
+When you ask three frontier models the same architectural question, they often disagree. Most systems hide thisΓÇöthey pick one answer or try to synthesize a false consensus.
 
 Janus surfaces disagreement explicitly:
 
@@ -109,7 +109,7 @@ Claude Opus 4.5: Monorepo. Atomic commits across services, unified
 GPT-5.2: Polyrepo. Independent deployment cycles, clearer ownership
   boundaries, simpler CI per service. Monorepo tooling adds complexity.
 
-Gemini 3: Depends on team size. <10 engineers → monorepo. >30 → polyrepo.
+Gemini 3: Depends on team size. <10 engineers ΓåÆ monorepo. >30 ΓåÆ polyrepo.
   You're at 15, so either works. I'd lean monorepo for now, migrate later
   if needed.
 
@@ -122,7 +122,7 @@ This is more useful than a confident-sounding wrong answer.
 
 ### 4. Swarm Coordination
 
-For tasks requiring parallel work—researching multiple approaches, validating across different contexts, exploring a codebase—Janus coordinates agent swarms:
+For tasks requiring parallel workΓÇöresearching multiple approaches, validating across different contexts, exploring a codebaseΓÇöJanus coordinates agent swarms:
 
 - **Scout Swarm**: Parallel research agents that fan out, gather information, and synthesize
 - **Executor Swarm**: Coordinated code modifications across multiple files
@@ -150,7 +150,7 @@ If you can accomplish the same thing with a well-crafted prompt and a direct API
 
 ### Observable Disagreement
 
-Consensus-seeking algorithms that paper over genuine uncertainty are epistemically dishonest. When frontier models disagree on non-trivial problems—and they do, frequently—that disagreement contains information.
+Consensus-seeking algorithms that paper over genuine uncertainty are epistemically dishonest. When frontier models disagree on non-trivial problemsΓÇöand they do, frequentlyΓÇöthat disagreement contains information.
 
 Janus treats disagreement as signal, not noise:
 - Disagreements are logged with full reasoning from each model
@@ -164,7 +164,7 @@ Cross-session memory isn't a feature bolted on at the end. It's foundational inf
 This means:
 - Memory operations are first-class, not afterthoughts
 - The schema supports rich queries (by date, by file, by concept, by decision type)
-- Memory is append-only with full history—nothing is silently forgotten
+- Memory is append-only with full historyΓÇönothing is silently forgotten
 - External tools can read memory state (it's just SQLite)
 
 ### Frontier Models Only
@@ -186,93 +186,93 @@ Model references are updated at the start of each session. If you see code refer
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                            JANUS ORCHESTRATOR                                │
-│                                                                             │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                     MEMORY LAYER (claude-mem)                          │ │
-│  │                                                                        │ │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │ │
-│  │  │ Observation │  │   Session   │  │   Search    │  │  Timeline   │  │ │
-│  │  │   Store     │  │   Manager   │  │   Index     │  │  Navigator  │  │ │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  │ │
-│  │                           │                                           │ │
-│  │                    ┌──────┴──────┐                                   │ │
-│  │                    │   SQLite    │                                   │ │
-│  │                    │  Database   │                                   │ │
-│  │                    └─────────────┘                                   │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                                                             │
-│  ┌─────────────────────┐  ┌─────────────────────┐  ┌────────────────────┐  │
-│  │    LLM Council      │  │    Model Router     │  │  janus-dashboard   │  │
-│  │                     │  │                     │  │                    │  │
-│  │  ┌───────────────┐  │  │  ┌───────────────┐  │  │  ┌──────────────┐ │  │
-│  │  │ Claude Opus   │  │  │  │ Cost Tracker  │  │  │  │ Agent Status │ │  │
-│  │  │ GPT-5.2       │  │  │  │ Capability    │  │  │  │ Memory View  │ │  │
-│  │  │ Gemini 3      │  │  │  │ Matcher       │  │  │  │ SSE Stream   │ │  │
-│  │  │ GLM 4.7       │  │  │  │ Fallback      │  │  │  │ Cmd Palette  │ │  │
-│  │  └───────────────┘  │  │  │ Chains        │  │  │  └──────────────┘ │  │
-│  │         │          │  │  └───────────────┘  │  │         │          │  │
-│  │  ┌──────┴──────┐   │  │         │          │  │  ┌──────┴──────┐   │  │
-│  │  │  Chairman   │   │  │  ┌──────┴──────┐   │  │  │ Glassmorphic│   │  │
-│  │  │  (Gemini 3  │   │  │  │  LiteLLM    │   │  │  │     UI      │   │  │
-│  │  │    Pro)     │   │  │  │   Proxy     │   │  │  └─────────────┘   │  │
-│  │  └─────────────┘   │  │  └─────────────┘   │  │                    │  │
-│  └─────────────────────┘  └─────────────────────┘  └────────────────────┘  │
-│                                                                             │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                         ROUTING LAYER                                  │ │
-│  │                                                                        │ │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │ │
-│  │  │ OpenRouter  │  │  LiteLLM    │  │ Oh My       │  │  Direct     │  │ │
-│  │  │ (primary)   │  │  (local)    │  │ OpenCode    │  │  API calls  │  │ │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                                                             │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                          SWARM LAYER                                   │ │
-│  │                                                                        │ │
-│  │  ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐    │ │
-│  │  │   Scout Swarm    │  │  Executor Swarm  │  │  Council Swarm   │    │ │
-│  │  │                  │  │                  │  │                  │    │ │
-│  │  │ • Parallel       │  │ • Coordinated    │  │ • Multi-model    │    │ │
-│  │  │   research       │  │   code changes   │  │   deliberation   │    │ │
-│  │  │ • URL verify     │  │ • File sync      │  │ • Disagreement   │    │ │
-│  │  │ • Doc search     │  │ • Test runner    │  │   preservation   │    │ │
-│  │  │ • Package check  │  │ • Build verify   │  │ • Chairman       │    │ │
-│  │  │                  │  │                  │  │   synthesis      │    │ │
-│  │  └──────────────────┘  └──────────────────┘  └──────────────────┘    │ │
-│  │                                                                        │ │
-│  │  Transport: QUIC (agentic-flow) / HTTP fallback                       │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                                                             │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                       ANALYTICS LAYER                                  │ │
-│  │                                                                        │ │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  │ │
-│  │  │ claudelytics│  │   Token     │  │    Cost     │  │  Pattern    │  │ │
-│  │  │   (core)    │  │  Counter    │  │  Optimizer  │  │  Detector   │  │ │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘  │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé                            JANUS ORCHESTRATOR                                Γöé
+Γöé                                                                             Γöé
+Γöé  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ Γöé
+Γöé  Γöé                     MEMORY LAYER (claude-mem)                          Γöé Γöé
+Γöé  Γöé                                                                        Γöé Γöé
+Γöé  Γöé  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  Γöé Γöé
+Γöé  Γöé  Γöé Observation Γöé  Γöé   Session   Γöé  Γöé   Search    Γöé  Γöé  Timeline   Γöé  Γöé Γöé
+Γöé  Γöé  Γöé   Store     Γöé  Γöé   Manager   Γöé  Γöé   Index     Γöé  Γöé  Navigator  Γöé  Γöé Γöé
+Γöé  Γöé  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  Γöé Γöé
+Γöé  Γöé                           Γöé                                           Γöé Γöé
+Γöé  Γöé                    ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ                                   Γöé Γöé
+Γöé  Γöé                    Γöé   SQLite    Γöé                                   Γöé Γöé
+Γöé  Γöé                    Γöé  Database   Γöé                                   Γöé Γöé
+Γöé  Γöé                    ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ                                   Γöé Γöé
+Γöé  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ Γöé
+Γöé                                                                             Γöé
+Γöé  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  Γöé
+Γöé  Γöé    LLM Council      Γöé  Γöé    Model Router     Γöé  Γöé  janus-dashboard   Γöé  Γöé
+Γöé  Γöé                     Γöé  Γöé                     Γöé  Γöé                    Γöé  Γöé
+Γöé  Γöé  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  Γöé  Γöé  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  Γöé  Γöé  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ Γöé  Γöé
+Γöé  Γöé  Γöé Claude Opus   Γöé  Γöé  Γöé  Γöé Cost Tracker  Γöé  Γöé  Γöé  Γöé Agent Status Γöé Γöé  Γöé
+Γöé  Γöé  Γöé GPT-5.2       Γöé  Γöé  Γöé  Γöé Capability    Γöé  Γöé  Γöé  Γöé Memory View  Γöé Γöé  Γöé
+Γöé  Γöé  Γöé Gemini 3      Γöé  Γöé  Γöé  Γöé Matcher       Γöé  Γöé  Γöé  Γöé SSE Stream   Γöé Γöé  Γöé
+Γöé  Γöé  Γöé GLM 4.7       Γöé  Γöé  Γöé  Γöé Fallback      Γöé  Γöé  Γöé  Γöé Cmd Palette  Γöé Γöé  Γöé
+Γöé  Γöé  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  Γöé  Γöé  Γöé Chains        Γöé  Γöé  Γöé  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ Γöé  Γöé
+Γöé  Γöé         Γöé          Γöé  Γöé  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  Γöé  Γöé         Γöé          Γöé  Γöé
+Γöé  Γöé  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ   Γöé  Γöé         Γöé          Γöé  Γöé  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ   Γöé  Γöé
+Γöé  Γöé  Γöé  Chairman   Γöé   Γöé  Γöé  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ   Γöé  Γöé  Γöé GlassmorphicΓöé   Γöé  Γöé
+Γöé  Γöé  Γöé  (Gemini 3  Γöé   Γöé  Γöé  Γöé  LiteLLM    Γöé   Γöé  Γöé  Γöé     UI      Γöé   Γöé  Γöé
+Γöé  Γöé  Γöé    Pro)     Γöé   Γöé  Γöé  Γöé   Proxy     Γöé   Γöé  Γöé  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ   Γöé  Γöé
+Γöé  Γöé  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ   Γöé  Γöé  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ   Γöé  Γöé                    Γöé  Γöé
+Γöé  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  Γöé
+Γöé                                                                             Γöé
+Γöé  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ Γöé
+Γöé  Γöé                         ROUTING LAYER                                  Γöé Γöé
+Γöé  Γöé                                                                        Γöé Γöé
+Γöé  Γöé  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  Γöé Γöé
+Γöé  Γöé  Γöé OpenRouter  Γöé  Γöé  LiteLLM    Γöé  Γöé Oh My       Γöé  Γöé  Direct     Γöé  Γöé Γöé
+Γöé  Γöé  Γöé (primary)   Γöé  Γöé  (local)    Γöé  Γöé OpenCode    Γöé  Γöé  API calls  Γöé  Γöé Γöé
+Γöé  Γöé  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  Γöé Γöé
+Γöé  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ Γöé
+Γöé                                                                             Γöé
+Γöé  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ Γöé
+Γöé  Γöé                          SWARM LAYER                                   Γöé Γöé
+Γöé  Γöé                                                                        Γöé Γöé
+Γöé  Γöé  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ    Γöé Γöé
+Γöé  Γöé  Γöé   Scout Swarm    Γöé  Γöé  Executor Swarm  Γöé  Γöé  Council Swarm   Γöé    Γöé Γöé
+Γöé  Γöé  Γöé                  Γöé  Γöé                  Γöé  Γöé                  Γöé    Γöé Γöé
+Γöé  Γöé  Γöé ΓÇó Parallel       Γöé  Γöé ΓÇó Coordinated    Γöé  Γöé ΓÇó Multi-model    Γöé    Γöé Γöé
+Γöé  Γöé  Γöé   research       Γöé  Γöé   code changes   Γöé  Γöé   deliberation   Γöé    Γöé Γöé
+Γöé  Γöé  Γöé ΓÇó URL verify     Γöé  Γöé ΓÇó File sync      Γöé  Γöé ΓÇó Disagreement   Γöé    Γöé Γöé
+Γöé  Γöé  Γöé ΓÇó Doc search     Γöé  Γöé ΓÇó Test runner    Γöé  Γöé   preservation   Γöé    Γöé Γöé
+Γöé  Γöé  Γöé ΓÇó Package check  Γöé  Γöé ΓÇó Build verify   Γöé  Γöé ΓÇó Chairman       Γöé    Γöé Γöé
+Γöé  Γöé  Γöé                  Γöé  Γöé                  Γöé  Γöé   synthesis      Γöé    Γöé Γöé
+Γöé  Γöé  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ    Γöé Γöé
+Γöé  Γöé                                                                        Γöé Γöé
+Γöé  Γöé  Transport: QUIC (agentic-flow) / HTTP fallback                       Γöé Γöé
+Γöé  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ Γöé
+Γöé                                                                             Γöé
+Γöé  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ Γöé
+Γöé  Γöé                       ANALYTICS LAYER                                  Γöé Γöé
+Γöé  Γöé                                                                        Γöé Γöé
+Γöé  Γöé  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ  Γöé Γöé
+Γöé  Γöé  Γöé claudelyticsΓöé  Γöé   Token     Γöé  Γöé    Cost     Γöé  Γöé  Pattern    Γöé  Γöé Γöé
+Γöé  Γöé  Γöé   (core)    Γöé  Γöé  Counter    Γöé  Γöé  Optimizer  Γöé  Γöé  Detector   Γöé  Γöé Γöé
+Γöé  Γöé  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ  Γöé Γöé
+Γöé  ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ Γöé
+Γöé                                                                             Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
 ```
 
 ### Data Flow
 
-1. **User query arrives** → Orchestrator receives request
-2. **Memory consulted** → Relevant past observations, decisions, context loaded
-3. **Route determined** → Model selected based on task type, cost constraints, capability match
-4. **Execution** → Single model call OR council deliberation OR swarm deployment
-5. **Response generated** → Answer synthesized, disagreements preserved if applicable
-6. **Memory updated** → Significant observations, decisions, insights captured
-7. **Analytics logged** → Tokens, cost, timing, patterns recorded
+1. **User query arrives** ΓåÆ Orchestrator receives request
+2. **Memory consulted** ΓåÆ Relevant past observations, decisions, context loaded
+3. **Route determined** ΓåÆ Model selected based on task type, cost constraints, capability match
+4. **Execution** ΓåÆ Single model call OR council deliberation OR swarm deployment
+5. **Response generated** ΓåÆ Answer synthesized, disagreements preserved if applicable
+6. **Memory updated** ΓåÆ Significant observations, decisions, insights captured
+7. **Analytics logged** ΓåÆ Tokens, cost, timing, patterns recorded
 
 ---
 
 ## Components
 
-### claude-mem — Persistent Cross-Session Memory
+### claude-mem ΓÇö Persistent Cross-Session Memory
 
 The memory substrate that makes everything else possible.
 
@@ -321,15 +321,15 @@ mcp__plugin_claude-mem_claude-mem-search__get_session
 mcp__plugin_claude-mem_claude-mem-search__get_prompt
 ```
 
-**Status:** ✅ Production — Currently providing memory for active Claude Code sessions
+**Status:** Γ£à Production ΓÇö Currently providing memory for active Claude Code sessions
 
 **Location:** `claude-mem/`
 
 ---
 
-### llm-council-agent — Multi-Model Deliberation
+### llm-council-agent ΓÇö Multi-Model Deliberation
 
-When a decision matters, don't ask one model—convene a council.
+When a decision matters, don't ask one modelΓÇöconvene a council.
 
 **How it works:**
 
@@ -340,10 +340,10 @@ When a decision matters, don't ask one model—convene a council.
 5. **Result stored** in memory with full deliberation trace
 
 **Council composition (default):**
-- Claude Opus 4.5 — Deep reasoning, nuanced analysis
-- GPT-5.2 — Broad knowledge, clear explanations
-- Gemini 3 Pro — Fast synthesis, practical recommendations
-- GLM 4.7 — Alternative perspective, strong on code
+- Claude Opus 4.5 ΓÇö Deep reasoning, nuanced analysis
+- GPT-5.2 ΓÇö Broad knowledge, clear explanations
+- Gemini 3 Pro ΓÇö Fast synthesis, practical recommendations
+- GLM 4.7 ΓÇö Alternative perspective, strong on code
 
 **Chairman:** Gemini 3 Pro (configurable)
 
@@ -356,42 +356,42 @@ npm run dev "Should we implement rate limiting at the API gateway or per-service
 
 **Output example:**
 ```
-╔══════════════════════════════════════════════════════════════════╗
-║                        COUNCIL DELIBERATION                       ║
-╠══════════════════════════════════════════════════════════════════╣
-║ Query: Rate limiting location                                     ║
-║ Duration: 4.2s | Cost: $0.0163 | Models: 4                       ║
-╠══════════════════════════════════════════════════════════════════╣
-║                                                                   ║
-║ CLAUDE OPUS 4.5:                                                  ║
-║ API gateway for global limits, per-service for business logic.   ║
-║ Defense in depth. Gateway catches abuse, services enforce        ║
-║ domain-specific quotas.                                          ║
-║                                                                   ║
-║ GPT-5.2:                                                          ║
-║ Start with gateway only. Add per-service when you have evidence  ║
-║ you need it. YAGNI. Distributed rate limiting is operationally   ║
-║ complex (Redis cluster, race conditions).                        ║
-║                                                                   ║
-║ GEMINI 3:                                                         ║
-║ Gateway. 90% of rate limiting needs are "don't DDoS me" which    ║
-║ the gateway handles. Per-service adds latency on every request.  ║
-║                                                                   ║
-║ GLM 4.7:                                                          ║
-║ Both, but gateway is the priority. Use token bucket at gateway,  ║
-║ sliding window per-service only for premium tier features.       ║
-║                                                                   ║
-╠══════════════════════════════════════════════════════════════════╣
-║ CHAIRMAN SYNTHESIS:                                               ║
-║                                                                   ║
-║ Consensus: API gateway rate limiting is the clear priority.      ║
-║ Disagreement: Whether per-service limiting is needed now or      ║
-║ should wait for evidence.                                        ║
-║                                                                   ║
-║ Recommendation: Implement gateway rate limiting immediately.     ║
-║ Defer per-service until you have specific business requirements  ║
-║ that gateway limits can't address.                               ║
-╚══════════════════════════════════════════════════════════════════╝
+ΓòöΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòù
+Γòæ                        COUNCIL DELIBERATION                       Γòæ
+ΓòáΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòú
+Γòæ Query: Rate limiting location                                     Γòæ
+Γòæ Duration: 4.2s | Cost: $0.0163 | Models: 4                       Γòæ
+ΓòáΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòú
+Γòæ                                                                   Γòæ
+Γòæ CLAUDE OPUS 4.5:                                                  Γòæ
+Γòæ API gateway for global limits, per-service for business logic.   Γòæ
+Γòæ Defense in depth. Gateway catches abuse, services enforce        Γòæ
+Γòæ domain-specific quotas.                                          Γòæ
+Γòæ                                                                   Γòæ
+Γòæ GPT-5.2:                                                          Γòæ
+Γòæ Start with gateway only. Add per-service when you have evidence  Γòæ
+Γòæ you need it. YAGNI. Distributed rate limiting is operationally   Γòæ
+Γòæ complex (Redis cluster, race conditions).                        Γòæ
+Γòæ                                                                   Γòæ
+Γòæ GEMINI 3:                                                         Γòæ
+Γòæ Gateway. 90% of rate limiting needs are "don't DDoS me" which    Γòæ
+Γòæ the gateway handles. Per-service adds latency on every request.  Γòæ
+Γòæ                                                                   Γòæ
+Γòæ GLM 4.7:                                                          Γòæ
+Γòæ Both, but gateway is the priority. Use token bucket at gateway,  Γòæ
+Γòæ sliding window per-service only for premium tier features.       Γòæ
+Γòæ                                                                   Γòæ
+ΓòáΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòú
+Γòæ CHAIRMAN SYNTHESIS:                                               Γòæ
+Γòæ                                                                   Γòæ
+Γòæ Consensus: API gateway rate limiting is the clear priority.      Γòæ
+Γòæ Disagreement: Whether per-service limiting is needed now or      Γòæ
+Γòæ should wait for evidence.                                        Γòæ
+Γòæ                                                                   Γòæ
+Γòæ Recommendation: Implement gateway rate limiting immediately.     Γòæ
+Γòæ Defer per-service until you have specific business requirements  Γòæ
+Γòæ that gateway limits can't address.                               Γòæ
+ΓòÜΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓò¥
 ```
 
 **Configuration:**
@@ -403,13 +403,13 @@ COUNCIL_MODELS=openai/gpt-5.2,anthropic/claude-opus-4-5,google/gemini-3-pro,zhip
 CHAIRMAN_MODEL=google/gemini-3-pro
 ```
 
-**Status:** ✅ Operational — Tested with OpenRouter, ~$0.016 per query
+**Status:** Γ£à Operational ΓÇö Tested with OpenRouter, ~$0.016 per query
 
 **Location:** `llm-council-agent-ts/` (TypeScript), `llm-council-agent-py/` (Python)
 
 ---
 
-### janus-dashboard — Real-Time Agent Observatory
+### janus-dashboard ΓÇö Real-Time Agent Observatory
 
 Glassmorphism UI for monitoring agent state, memory, and system health.
 
@@ -445,7 +445,7 @@ python -m http.server 8080
 | `Cmd+F` | Focus search |
 | `Escape` | Close modals |
 
-**Status:** ✅ Active
+**Status:** Γ£à Active
 
 **Location:** `janus-dashboard/`
 
@@ -482,11 +482,11 @@ Janus integrates with [Oh My OpenCode](https://github.com/code-yeongyu/oh-my-ope
 
 **Integration status:** The memory sharing problem between Janus and Oh My OpenCode sub-agents remains unsolved (see [Memory Challenge](#the-memory-challenge)).
 
-**Status:** ✅ Integrated as of December 2025
+**Status:** Γ£à Integrated as of December 2025
 
 ---
 
-### agentic-flow — QUIC-Based Swarm Coordination
+### agentic-flow ΓÇö QUIC-Based Swarm Coordination
 
 Third-party package from @ruvnet providing distributed agent coordination.
 
@@ -520,13 +520,13 @@ cd agentic-flow  # nested directory, package structure
 npx tsx examples/quic-swarm-mesh.ts
 ```
 
-**Status:** ⚠️ Code present, local verification pending
+**Status:** ΓÜá∩╕Å Code present, local verification pending
 
 **Location:** `agentic-flow/`
 
 ---
 
-### claudelytics — Usage Analytics
+### claudelytics ΓÇö Usage Analytics
 
 Token consumption, cost tracking, and usage pattern analysis.
 
@@ -537,7 +537,7 @@ Token consumption, cost tracking, and usage pattern analysis.
 - Response latencies
 - Error rates and retry counts
 
-**Status:** ✅ Active
+**Status:** Γ£à Active
 
 **Location:** `claudelytics/`
 
@@ -555,7 +555,7 @@ Unified interface for multi-provider model access with cost optimization.
 | B (Mid-tier) | Quality checks | Gemini 3 Pro, Sonnet 4.5, GPT-5.2 |
 | C (Flagship) | Production/gold | Opus 4.5, GPT-5.2 Pro |
 | Council | Deliberation | All Tier B models + GLM 4.7 |
-| Auto | Fallback chain | Gemini → Claude → GPT (in order) |
+| Auto | Fallback chain | Gemini ΓåÆ Claude ΓåÆ GPT (in order) |
 
 **Configuration file:** `litellm_config.yaml`
 
@@ -567,7 +567,7 @@ litellm --config litellm_config.yaml --port 4000
 curl http://localhost:4000/health
 ```
 
-**Status:** ⚠️ Configuration present, proxy deployment optional
+**Status:** ΓÜá∩╕Å Configuration present, proxy deployment optional
 
 ---
 
@@ -689,9 +689,9 @@ npx tsx agentic-flow/examples/quic-swarm-mesh.ts
 Create a `.env` file in the project root:
 
 ```bash
-# ══════════════════════════════════════════════════════════════════
+# ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 # REQUIRED: At least one provider API key
-# ══════════════════════════════════════════════════════════════════
+# ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 
 # Anthropic (for Claude models)
 ANTHROPIC_API_KEY=sk-ant-api03-...
@@ -708,23 +708,23 @@ OPENROUTER_API_KEY=sk-or-v1-...
 # Z.ai (for GLM models, optional)
 ZAI_API_KEY=...
 
-# ══════════════════════════════════════════════════════════════════
+# ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 # OPTIONAL: LiteLLM proxy configuration
-# ══════════════════════════════════════════════════════════════════
+# ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 
 LITELLM_MASTER_KEY=your-admin-key
 LITELLM_PORT=4000
 
-# ══════════════════════════════════════════════════════════════════
+# ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 # OPTIONAL: Council configuration
-# ══════════════════════════════════════════════════════════════════
+# ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 
 COUNCIL_MODELS=openai/gpt-5.2,anthropic/claude-opus-4-5,google/gemini-3-pro
 CHAIRMAN_MODEL=google/gemini-3-pro
 
-# ══════════════════════════════════════════════════════════════════
+# ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 # OPTIONAL: Cost controls
-# ══════════════════════════════════════════════════════════════════
+# ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
 
 JANUS_MONTHLY_BUDGET=100.00
 JANUS_ENABLE_COST_OPTIMIZATION=true
@@ -956,10 +956,10 @@ Here's an unsolved problem we're actively working on: **memory doesn't transfer 
 
 When you run Claude Code in one terminal with claude-mem, that instance accumulates observations and builds context. But:
 
-- Spawn another Claude Code instance in a different terminal → Starts fresh
-- Use Oh My OpenCode's sub-agents → They can't access parent's memory
-- Run a background agent → Isolated from the main session
-- Deploy a swarm → Each agent has no shared memory
+- Spawn another Claude Code instance in a different terminal ΓåÆ Starts fresh
+- Use Oh My OpenCode's sub-agents ΓåÆ They can't access parent's memory
+- Run a background agent ΓåÆ Isolated from the main session
+- Deploy a swarm ΓåÆ Each agent has no shared memory
 
 The root cause: claude-mem's MCP server is bound to a specific Claude Code process. The SQLite database exists and is readable, but:
 
@@ -1005,16 +1005,16 @@ npm run export -- --days 7 --output context.json
 
 A standalone HTTP/WebSocket API fronting the SQLite store:
 ```
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│ Claude Code  │────▶│   Memory     │◀────│ Sub-Agent    │
-│  Instance 1  │     │    Proxy     │     │  Instance    │
-└──────────────┘     │   (HTTP)     │     └──────────────┘
-                     └──────┬───────┘
-                            │
-                     ┌──────┴───────┐
-                     │    SQLite    │
-                     │   Database   │
-                     └──────────────┘
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ     ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ     ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé Claude Code  ΓöéΓöÇΓöÇΓöÇΓöÇΓû╢Γöé   Memory     ΓöéΓùÇΓöÇΓöÇΓöÇΓöÇΓöé Sub-Agent    Γöé
+Γöé  Instance 1  Γöé     Γöé    Proxy     Γöé     Γöé  Instance    Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ     Γöé   (HTTP)     Γöé     ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+                     ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+                            Γöé
+                     ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö┤ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+                     Γöé    SQLite    Γöé
+                     Γöé   Database   Γöé
+                     ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
 ```
 
 **Agent SDK Integration**
@@ -1037,15 +1037,15 @@ result = agent.run("Continue working on the rate limiting feature")
 
 SSE-based real-time sync:
 ```
-┌──────────────┐         ┌──────────────┐
-│ Claude Code  │◀──SSE───│   Memory     │
-│  Instance 1  │         │  Broadcaster │
-└──────────────┘         └──────┬───────┘
-                                │
-┌──────────────┐                │
-│ Claude Code  │◀──SSE──────────┘
-│  Instance 2  │
-└──────────────┘
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ         ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ
+Γöé Claude Code  ΓöéΓùÇΓöÇΓöÇSSEΓöÇΓöÇΓöÇΓöé   Memory     Γöé
+Γöé  Instance 1  Γöé         Γöé  Broadcaster Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ         ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓö¼ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+                                Γöé
+ΓöîΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÉ                Γöé
+Γöé Claude Code  ΓöéΓùÇΓöÇΓöÇSSEΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
+Γöé  Instance 2  Γöé
+ΓööΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÿ
 ```
 
 **If you've solved this problem, we want to hear from you.**
@@ -1056,55 +1056,55 @@ SSE-based real-time sync:
 
 ```
 Janus~/
-├── claude-mem/                 # Persistent memory system
-│   ├── src/
-│   │   ├── hooks/             # Claude Code hook handlers
-│   │   ├── servers/           # MCP server implementation
-│   │   ├── services/          # Core services (sqlite, worker, sync)
-│   │   └── ui/                # Memory viewer UI
-│   └── scripts/               # Utilities (export, import, debug)
-│
-├── claudelytics/              # Usage analytics
-│   ├── src/
-│   └── dashboard/
-│
-├── llm-council/               # Multi-model deliberation (core library)
-│   └── src/
-│
-├── llm-council-agent-ts/      # TypeScript council agent
-│   ├── src/
-│   │   ├── index.ts          # Entry point
-│   │   ├── council.ts        # Council logic
-│   │   └── models.ts         # Model configuration
-│   └── .env                   # API keys (not committed)
-│
-├── llm-council-agent-py/      # Python council agent
-│   ├── src/
-│   └── pyproject.toml
-│
-├── janus-dashboard/           # Real-time monitoring UI
-│   ├── index.html            # Main dashboard
-│   ├── index-glass.html      # Glassmorphism variant
-│   ├── memory/               # Memory browser
-│   └── notifications/        # Alert system
-│
-├── agentic-flow/              # QUIC swarm coordination (third-party)
-│   ├── agentic-flow/         # Nested package structure
-│   │   ├── src/
-│   │   │   ├── swarm/       # QUIC coordinator
-│   │   │   ├── agents/      # Agent implementations
-│   │   │   └── transport/   # QUIC transport layer
-│   │   └── examples/        # Usage examples
-│   └── packages/             # Sub-packages
-│
-├── janus-agent-sdk/           # Agent SDK extensions
-│
-├── core/                      # Core Janus orchestrator (WIP)
-│
-├── litellm_config.yaml        # Multi-provider routing config
-├── JANUS_MASTER_PLAN.md       # Implementation roadmap
-├── CLAUDE.md                  # Claude Code instructions
-└── README.md                  # This file
+Γö£ΓöÇΓöÇ claude-mem/                 # Persistent memory system
+Γöé   Γö£ΓöÇΓöÇ src/
+Γöé   Γöé   Γö£ΓöÇΓöÇ hooks/             # Claude Code hook handlers
+Γöé   Γöé   Γö£ΓöÇΓöÇ servers/           # MCP server implementation
+Γöé   Γöé   Γö£ΓöÇΓöÇ services/          # Core services (sqlite, worker, sync)
+Γöé   Γöé   ΓööΓöÇΓöÇ ui/                # Memory viewer UI
+Γöé   ΓööΓöÇΓöÇ scripts/               # Utilities (export, import, debug)
+Γöé
+Γö£ΓöÇΓöÇ claudelytics/              # Usage analytics
+Γöé   Γö£ΓöÇΓöÇ src/
+Γöé   ΓööΓöÇΓöÇ dashboard/
+Γöé
+Γö£ΓöÇΓöÇ llm-council/               # Multi-model deliberation (core library)
+Γöé   ΓööΓöÇΓöÇ src/
+Γöé
+Γö£ΓöÇΓöÇ llm-council-agent-ts/      # TypeScript council agent
+Γöé   Γö£ΓöÇΓöÇ src/
+Γöé   Γöé   Γö£ΓöÇΓöÇ index.ts          # Entry point
+Γöé   Γöé   Γö£ΓöÇΓöÇ council.ts        # Council logic
+Γöé   Γöé   ΓööΓöÇΓöÇ models.ts         # Model configuration
+Γöé   ΓööΓöÇΓöÇ .env                   # API keys (not committed)
+Γöé
+Γö£ΓöÇΓöÇ llm-council-agent-py/      # Python council agent
+Γöé   Γö£ΓöÇΓöÇ src/
+Γöé   ΓööΓöÇΓöÇ pyproject.toml
+Γöé
+Γö£ΓöÇΓöÇ janus-dashboard/           # Real-time monitoring UI
+Γöé   Γö£ΓöÇΓöÇ index.html            # Main dashboard
+Γöé   Γö£ΓöÇΓöÇ index-glass.html      # Glassmorphism variant
+Γöé   Γö£ΓöÇΓöÇ memory/               # Memory browser
+Γöé   ΓööΓöÇΓöÇ notifications/        # Alert system
+Γöé
+Γö£ΓöÇΓöÇ agentic-flow/              # QUIC swarm coordination (third-party)
+Γöé   Γö£ΓöÇΓöÇ agentic-flow/         # Nested package structure
+Γöé   Γöé   Γö£ΓöÇΓöÇ src/
+Γöé   Γöé   Γöé   Γö£ΓöÇΓöÇ swarm/       # QUIC coordinator
+Γöé   Γöé   Γöé   Γö£ΓöÇΓöÇ agents/      # Agent implementations
+Γöé   Γöé   Γöé   ΓööΓöÇΓöÇ transport/   # QUIC transport layer
+Γöé   Γöé   ΓööΓöÇΓöÇ examples/        # Usage examples
+Γöé   ΓööΓöÇΓöÇ packages/             # Sub-packages
+Γöé
+Γö£ΓöÇΓöÇ janus-agent-sdk/           # Agent SDK extensions
+Γöé
+Γö£ΓöÇΓöÇ core/                      # Core Janus orchestrator (WIP)
+Γöé
+Γö£ΓöÇΓöÇ litellm_config.yaml        # Multi-provider routing config
+Γö£ΓöÇΓöÇ JANUS_MASTER_PLAN.md       # Implementation roadmap
+Γö£ΓöÇΓöÇ CLAUDE.md                  # Claude Code instructions
+ΓööΓöÇΓöÇ README.md                  # This file
 ```
 
 ---
@@ -1127,7 +1127,7 @@ If you're a Claude instance (or other LLM) reading this README as part of your c
 ### During Your Work
 
 1. **Record significant observations**: Decisions, discoveries, bugs, insights should be captured in memory
-2. **Note disagreements**: If you disagree with a past decision, record that—don't silently override
+2. **Note disagreements**: If you disagree with a past decision, record thatΓÇödon't silently override
 3. **Update relevant docs**: If you change something documented in JANUS_MASTER_PLAN.md, update it
 
 ### Common Tasks
@@ -1143,7 +1143,7 @@ If you're a Claude instance (or other LLM) reading this README as part of your c
 
 ## Contributing
 
-Janus is developed by **[AI et al.](https://github.com/AI-et-al)** — a cooperative of humans and AI building tools together.
+Janus is developed by **[AI et al.](https://github.com/AI-et-al)** ΓÇö a cooperative of humans and AI building tools together.
 
 ### Development Process
 
@@ -1213,56 +1213,56 @@ If you're an AI agent wanting to contribute:
 ### Completed (December 2025)
 
 **Memory Infrastructure**
-- ✅ Persistent cross-session memory system (claude-mem) — fully operational
-- ✅ SQLite-backed storage with full-text search indexing
-- ✅ MCP server integration exposing memory to Claude Code
-- ✅ Timeline navigation and batch observation retrieval
-- ✅ Session summarization and observation capture hooks
-- ✅ Memory viewer UI with search and filtering
+- Γ£à Persistent cross-session memory system (claude-mem) ΓÇö fully operational
+- Γ£à SQLite-backed storage with full-text search indexing
+- Γ£à MCP server integration exposing memory to Claude Code
+- Γ£à Timeline navigation and batch observation retrieval
+- Γ£à Session summarization and observation capture hooks
+- Γ£à Memory viewer UI with search and filtering
 
 **Multi-Model Council**
-- ✅ LLM Council architecture with 4 frontier models
-- ✅ Chairman synthesis that preserves disagreements
-- ✅ OpenRouter integration for unified provider access
-- ✅ TypeScript and Python implementations
-- ✅ Cost tracking per query (~$0.016 for 4-model deliberation)
-- ✅ Configurable council composition and chairman selection
+- Γ£à LLM Council architecture with 4 frontier models
+- Γ£à Chairman synthesis that preserves disagreements
+- Γ£à OpenRouter integration for unified provider access
+- Γ£à TypeScript and Python implementations
+- Γ£à Cost tracking per query (~$0.016 for 4-model deliberation)
+- Γ£à Configurable council composition and chairman selection
 
 **Dashboard & Monitoring**
-- ✅ Real-time agent status dashboard with glassmorphism UI
-- ✅ SSE-based live updates without polling
-- ✅ Command palette (Cmd+K) for quick actions
-- ✅ Memory browser integrated into dashboard
-- ✅ Session timeline visualization
+- Γ£à Real-time agent status dashboard with glassmorphism UI
+- Γ£à SSE-based live updates without polling
+- Γ£à Command palette (Cmd+K) for quick actions
+- Γ£à Memory browser integrated into dashboard
+- Γ£à Session timeline visualization
 
 **Routing & Configuration**
-- ✅ LiteLLM configuration with tiered model access
-- ✅ OpenRouter integration for multi-provider routing
-- ✅ Fallback chains for automatic failover
-- ✅ Cost tracking and budget controls
-- ✅ Frontier model policy enforcement
+- Γ£à LiteLLM configuration with tiered model access
+- Γ£à OpenRouter integration for multi-provider routing
+- Γ£à Fallback chains for automatic failover
+- Γ£à Cost tracking and budget controls
+- Γ£à Frontier model policy enforcement
 
 **Integrations**
-- ✅ Oh My OpenCode integration for enhanced Claude Code experience
-- ✅ agentic-flow package imported (verification pending)
-- ✅ claudelytics for usage analytics
+- Γ£à Oh My OpenCode integration for enhanced Claude Code experience
+- Γ£à agentic-flow package imported (verification pending)
+- Γ£à claudelytics for usage analytics
 
 ### In Progress
 
 **Cross-Instance Memory**
-- 🔄 Solving the memory sharing problem between Claude instances
-- 🔄 Evaluating memory proxy service architecture
-- 🔄 Exploring Agent SDK integration for memory access
+- ≡ƒöä Solving the memory sharing problem between Claude instances
+- ≡ƒöä Evaluating memory proxy service architecture
+- ≡ƒöä Exploring Agent SDK integration for memory access
 
 **Swarm Implementation**
-- 🔄 Verifying agentic-flow QUIC transport functionality
-- 🔄 Replacing Scout mock with real implementation
-- 🔄 Designing Executor swarm coordination
+- ≡ƒöä Verifying agentic-flow QUIC transport functionality
+- ≡ƒöä Replacing Scout mock with real implementation
+- ≡ƒöä Designing Executor swarm coordination
 
 **Dashboard Enhancements**
-- 🔄 Council deliberation visualization
-- 🔄 Cost analytics graphs
-- 🔄 Multi-session comparison view
+- ≡ƒöä Council deliberation visualization
+- ≡ƒöä Cost analytics graphs
+- ≡ƒöä Multi-session comparison view
 
 ---
 
@@ -1276,9 +1276,9 @@ Solve the cross-instance memory problem so that:
 - Background agents can read and contribute observations
 
 **Approach under consideration:**
-1. Memory Proxy Service — HTTP/WebSocket API fronting SQLite
-2. Shared MCP Server — Run claude-mem as a standalone daemon
-3. Agent SDK Plugin — Embed memory access in Claude Agent SDK
+1. Memory Proxy Service ΓÇö HTTP/WebSocket API fronting SQLite
+2. Shared MCP Server ΓÇö Run claude-mem as a standalone daemon
+3. Agent SDK Plugin ΓÇö Embed memory access in Claude Agent SDK
 
 ### Phase 2: Verified Swarm Coordination
 
@@ -1341,7 +1341,7 @@ Key influences:
 
 ## License
 
-MIT — see [LICENSE](./LICENSE)
+MIT ΓÇö see [LICENSE](./LICENSE)
 
 ---
 
