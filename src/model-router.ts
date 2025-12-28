@@ -10,6 +10,9 @@
 
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import { CostEntry, SessionCosts } from './types.js';
 
 export type Provider = 'anthropic' | 'openai' | 'openrouter';
 export type Model = 'haiku' | 'sonnet' | 'opus' | 'gpt-4' | 'gpt-4-turbo';
@@ -66,6 +69,8 @@ export class ModelRouter {
   private openai: OpenAI;
   private budgetRemaining: number;
   private enableCostOptimization: boolean;
+  private costEntries: CostEntry[] = [];
+  private sessionId: string | null = null;
 
   constructor() {
     this.anthropic = new Anthropic({
@@ -78,6 +83,13 @@ export class ModelRouter {
 
     this.budgetRemaining = parseFloat(process.env.JANUS_BUDGET_MONTHLY || '150');
     this.enableCostOptimization = process.env.ENABLE_COST_OPTIMIZATION === 'true';
+  }
+
+  /**
+   * Set the current session ID for cost tracking
+   */
+  setSessionId(sessionId: string): void {
+    this.sessionId = sessionId;
   }
 
   /**
@@ -194,13 +206,92 @@ export class ModelRouter {
   }
 
   /**
-   * Update budget remaining (typically called after each operation)
+   * Update budget remaining and record cost entry
    */
-  updateBudget(costIncurred: number): void {
+  updateBudget(
+    costIncurred: number,
+    details?: {
+      model: string;
+      inputTokens: number;
+      outputTokens: number;
+      operation: string;
+    }
+  ): void {
     this.budgetRemaining -= costIncurred;
+
+    // Record cost entry
+    const entry: CostEntry = {
+      timestamp: new Date().toISOString(),
+      model: details?.model || 'unknown',
+      inputTokens: details?.inputTokens || 0,
+      outputTokens: details?.outputTokens || 0,
+      cost: costIncurred,
+      operation: details?.operation || 'api-call'
+    };
+    this.costEntries.push(entry);
+
     if (this.budgetRemaining < 0) {
       console.warn('⚠️  Monthly budget exceeded!');
     }
+  }
+
+  /**
+   * Get all cost entries for the current session
+   */
+  getCostEntries(): CostEntry[] {
+    return [...this.costEntries];
+  }
+
+  /**
+   * Get session costs summary
+   */
+  getSessionCosts(): SessionCosts {
+    const entries = this.getCostEntries();
+    const totalCost = entries.reduce((sum, e) => sum + e.cost, 0);
+
+    const byModel: Record<string, number> = {};
+    const byOperation: Record<string, number> = {};
+
+    for (const entry of entries) {
+      byModel[entry.model] = (byModel[entry.model] || 0) + entry.cost;
+      byOperation[entry.operation] = (byOperation[entry.operation] || 0) + entry.cost;
+    }
+
+    return {
+      sessionId: this.sessionId || 'unknown',
+      entries,
+      totalCost,
+      byModel,
+      byOperation
+    };
+  }
+
+  /**
+   * Persist cost entries to the context bridge
+   */
+  async persistCosts(): Promise<void> {
+    if (!this.sessionId || this.costEntries.length === 0) {
+      return;
+    }
+
+    const contextPath = process.env.JANUS_CONTEXT_PATH || './janus-context';
+    const costsDir = path.join(contextPath, 'costs');
+    const costsFile = path.join(costsDir, `${this.sessionId}.json`);
+
+    try {
+      await fs.mkdir(costsDir, { recursive: true });
+      const sessionCosts = this.getSessionCosts();
+      await fs.writeFile(costsFile, JSON.stringify(sessionCosts, null, 2), 'utf-8');
+    } catch (error) {
+      console.warn('Failed to persist costs:', error);
+    }
+  }
+
+  /**
+   * Clear cost entries (typically after persisting)
+   */
+  clearCostEntries(): void {
+    this.costEntries = [];
   }
 
   /**

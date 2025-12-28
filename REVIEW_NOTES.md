@@ -26,8 +26,8 @@
 ## Items Requiring Follow-up
 
 ### High Priority
-- [ ] **Type reconciliation** - Decide canonical source between `src/types.ts` and `src/context-bridge/types.ts`
-- [ ] **Cost tracking source** - Determine if ModelRouter or claudelytics is canonical
+- [x] **Type reconciliation** - Consolidated into `src/types.ts` (commit 5ee8782)
+- [x] **Cost tracking source** - Resolved: ModelRouter for orchestration, claudelytics for Claude Code analytics (see Cost Tracking Architecture section)
 - [ ] **Council deliberation strategy** - Define when invoked by default vs on-demand
 
 ### Medium Priority
@@ -46,8 +46,85 @@
 
 ## Open Questions from Spec
 
-1. How should `src/types.ts` and `src/context-bridge/types.ts` be reconciled long-term?
-2. Should decision metadata include both `timestamp` and `date`?
+1. ~~How should `src/types.ts` and `src/context-bridge/types.ts` be reconciled long-term?~~ **RESOLVED**: Consolidated into `src/types.ts`
+2. ~~Should decision metadata include both `timestamp` and `date`?~~ **RESOLVED**: Yes, both included (date for human-readable, timestamp for ISO8601)
 3. What is the minimum viable interface for real swarm execution?
-4. Which system will be canonical for cost tracking?
+4. ~~Which system will be canonical for cost tracking?~~ **RESOLVED**: See Cost Tracking Architecture below
 5. When should Council deliberation be invoked by default vs on-demand?
+
+---
+
+## Cost Tracking Architecture (Research Dec 28, 2025)
+
+### Current State
+
+**Existing Components:**
+- `ModelRouter` (Janus) - Real-time budget gating with in-memory tracking
+- `litellm_config.yaml` (workspace root) - Already configured with all providers:
+  - Anthropic (Claude Opus 4.5, Sonnet 4.5, Haiku 4.5)
+  - OpenAI (GPT-5.2, GPT-5.2-pro, GPT-5.2-instant)
+  - Google (Gemini 3, Gemini 3 Flash, Gemini 3 Pro)
+  - Z.ai (GLM 4.7)
+  - OpenCode
+- `claudelytics` (external) - Claude Code session analytics ($200/month MAX tracking)
+
+### Available Solutions Researched
+
+| Tool | Type | Strengths | Weaknesses |
+|------|------|-----------|------------|
+| **LiteLLM** | Proxy/Gateway | Already configured, unified API, built-in budget tracking | No persistent analytics UI |
+| **Langfuse** | Observability | Open source, LiteLLM integration, Daily Metrics API | Requires hosting |
+| **Helicone** | Gateway+Analytics | 2-minute integration, 300+ models | SaaS dependency |
+| **Claudelytics** | CLI Analytics | Rich TUI, Claude Code specific | Claude only |
+
+### Recommended Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    JANUS COST TRACKING                      │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌───────────────┐    ┌───────────────┐    ┌────────────┐  │
+│  │  LiteLLM      │───▶│   Langfuse    │───▶│  Janus     │  │
+│  │  Proxy        │    │   (optional)  │    │  Dashboard │  │
+│  │  (Gateway)    │    │               │    │            │  │
+│  └───────────────┘    └───────────────┘    └────────────┘  │
+│         │                                                   │
+│         ▼                                                   │
+│  ┌───────────────┐                                         │
+│  │ ModelRouter   │  Real-time budget gating                │
+│  │ + CostEntry   │  Persists to context-bridge             │
+│  └───────────────┘                                         │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│  CLAUDE CODE SPECIFIC (Dave's MAX account)                 │
+│  ┌───────────────┐                                         │
+│  │  Claudelytics │  Parses ~/.claude/projects/ JSONL       │
+│  │  (Rust CLI)   │  5-hour billing blocks, TUI dashboard   │
+│  └───────────────┘                                         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Implementation Plan
+
+**Phase 1: Core (Now)**
+1. Integrate claudelytics into Janus dashboard
+2. Enhance ModelRouter to persist CostEntry records to context-bridge
+3. Add cost summary to CLI (`janus costs` command)
+
+**Phase 2: Multi-Model (Next)**
+1. Route all Janus API calls through LiteLLM proxy
+2. LiteLLM handles cost calculation per provider
+3. ModelRouter consumes LiteLLM cost data
+
+**Phase 3: Observability (Optional)**
+1. Enable Langfuse callback in litellm_config.yaml
+2. Add Langfuse dashboard link to janus-dashboard
+3. Daily Metrics API integration for cost reports
+
+### Decision
+
+**Canonical sources:**
+- **Claude Code spend** → Claudelytics (parses actual ~/.claude usage)
+- **Janus orchestration spend** → LiteLLM + ModelRouter (real-time tracking)
+- **Cross-session analytics** → Langfuse (optional, for detailed traces)
