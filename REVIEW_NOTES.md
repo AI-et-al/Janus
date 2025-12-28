@@ -39,8 +39,8 @@
 - [ ] **Verification checklist** - Complete items in `spec.md:153-160`
 
 ### Low Priority
-- [ ] **Complete SSH server work** - PR #7 still WIP
-- [ ] **Optimize animated GIF** - 5.8MB file may slow repo cloning
+- [ ] Complete SSH server work - PR #7 still WIP
+- [x] Optimize animated GIF - 1.7MB version deployed to root (reduced from 5.8MB)
 
 ---
 

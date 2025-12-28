@@ -7,7 +7,7 @@
 import * as read from './read.js';
 import * as write from './write.js';
 import * as sync from './sync.js';
-import { Session, Decision, Task, CurrentFocus } from './types.js';
+import { Session, Decision, Task, CurrentFocus } from '../types.js';
 
 export class ContextBridge {
   // Session management
@@ -80,4 +80,11 @@ export class ContextBridge {
   }
 }
 
-export * from './types.js';
+export type {
+  Session,
+  Decision,
+  Task,
+  CurrentFocus,
+  TaskResult,
+  ContextBridgeConfig
+} from '../types.js';

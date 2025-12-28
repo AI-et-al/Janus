@@ -7,7 +7,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { Session, Decision, Task, CurrentFocus } from './types.js';
+import { Session, Decision, Task, CurrentFocus } from '../types.js';
 
 const getContextPath = () => process.env.JANUS_CONTEXT_PATH || './janus-context';
 
@@ -37,9 +37,12 @@ export async function recordDecision(
   decision: Decision
 ): Promise<void> {
   // Save as markdown in decisions/
-  const filename = `${decision.date}-${decision.topic
-    .replace(/\s+/g, '-')
-    .toLowerCase()}.md`;
+  // Sanitize topic for filesystem safety (Windows and Unix)
+  const safeTopic = decision.topic
+    .replace(/[<>:"/\\|?*]+/g, '')  // Remove invalid chars
+    .replace(/\s+/g, '-')           // Spaces to dashes
+    .toLowerCase();
+  const filename = `${decision.date}-${safeTopic}.md`;
   const decisionPath = path.join(getContextPath(), 'decisions', filename);
 
   const markdown = formatDecisionMarkdown(decision);
@@ -115,8 +118,10 @@ function formatDecisionMarkdown(decision: Decision): string {
   return `# ${decision.topic}
 
 **Date:** ${decision.date}
+**Timestamp:** ${decision.timestamp}
 **Made By:** ${decision.madeBy}
 **Confidence:** ${decision.confidence}%
+**Reversible:** ${decision.reversible}
 
 ## Decision
 

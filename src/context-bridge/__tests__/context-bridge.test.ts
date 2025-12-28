@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { ContextBridge } from '../index';
-import { Session, Decision, Task, CurrentFocus } from '../types';
+import { Session, Decision, Task, CurrentFocus } from '../../types';
 
 // Use test directory for context
 const TEST_CONTEXT_PATH = path.join(process.cwd(), 'test-context');
@@ -86,11 +86,13 @@ describe('ContextBridge', () => {
       const decision: Decision = {
         id: 'test-decision',
         date: new Date().toISOString().split('T')[0],
+        timestamp: new Date().toISOString(),
         topic: 'Architecture approach',
         decision: 'Use multi-cloud provider routing',
         rationale: 'Optimizes cost and quality',
         madeBy: 'human',
         confidence: 95,
+        reversible: true,
         alternatives: ['Single provider', 'Load balancer']
       };
 
@@ -105,11 +107,13 @@ describe('ContextBridge', () => {
       const decision: Decision = {
         id: 'test-decision',
         date: '2025-12-18',
+        timestamp: new Date('2025-12-18').toISOString(),
         topic: 'Test topic',
         decision: 'Test decision',
         rationale: 'Test rationale',
         madeBy: 'council',
         confidence: 80,
+        reversible: true,
         alternatives: ['Alt 1', 'Alt 2']
       };
 
@@ -129,6 +133,8 @@ describe('ContextBridge', () => {
         assignedTo: 'scout-swarm',
         status: 'pending',
         context: 'Test context',
+        dependencies: [],
+        artifacts: [],
         result: undefined,
         model: 'haiku'
       };
@@ -148,6 +154,8 @@ describe('ContextBridge', () => {
         assignedTo: 'executor-swarm',
         status: 'pending',
         context: 'Test',
+        dependencies: [],
+        artifacts: [],
         model: 'sonnet'
       };
 
@@ -166,6 +174,8 @@ describe('ContextBridge', () => {
         assignedTo: 'scout-swarm',
         status: 'pending',
         context: 'Test',
+        dependencies: [],
+        artifacts: [],
         model: 'haiku'
       };
 
@@ -175,6 +185,8 @@ describe('ContextBridge', () => {
         assignedTo: 'council',
         status: 'pending',
         context: 'Test',
+        dependencies: [],
+        artifacts: [],
         model: 'sonnet'
       };
 
@@ -265,11 +277,13 @@ describe('ContextBridge', () => {
       const decision: Decision = {
         id: 'int-decision',
         date: '2025-12-18',
+        timestamp: new Date('2025-12-18').toISOString(),
         topic: 'Integration test decision',
         decision: 'Test workflow',
         rationale: 'Comprehensive integration test',
         madeBy: 'council',
         confidence: 90,
+        reversible: true,
         alternatives: ['Alternative 1']
       };
       await bridge.recordDecision(session.id, decision);
@@ -281,6 +295,8 @@ describe('ContextBridge', () => {
         assignedTo: 'executor-swarm',
         status: 'pending',
         context: 'Integration test',
+        dependencies: [],
+        artifacts: [],
         model: 'sonnet'
       };
       await bridge.delegateTask(task);

@@ -15,29 +15,35 @@ export interface Session {
   keyDecisions: Decision[];
   openQuestions: string[];
   delegatedTasks: Task[];
+  modelsInvolved: string[];     // Models used during this session
 }
 
 export interface Decision {
   id: string;
-  timestamp: string;
+  date: string;                 // Human-readable (YYYY-MM-DD)
+  timestamp: string;            // ISO8601 precise timestamp
   topic: string;
   decision: string;
   rationale: string;
   alternatives: string[];
-  madeBy: 'opus' | 'council' | 'human';
+  madeBy: 'opus' | 'sonnet' | 'haiku' | 'council' | 'human';
   reversible: boolean;
+  confidence: number;           // 0-100
 }
 
 export interface Task {
   id: string;
   description: string;
   assignedTo: 'scout-swarm' | 'executor-swarm' | 'council';
-  status: 'pending' | 'active' | 'blocked' | 'complete' | 'failed';
+  status: 'pending' | 'running' | 'blocked' | 'complete' | 'failed';
   context: string;
   dependencies: string[];
   artifacts: string[];
   result?: string;
   error?: string;
+  model?: string;               // Model used for execution
+  duration?: number;            // Execution time in ms
+  cost?: number;                // Cost in USD
 }
 
 export interface CurrentFocus {
@@ -45,7 +51,19 @@ export interface CurrentFocus {
   phase: string;
   blockers: string[];
   nextActions: string[];
-  lastUpdated?: string;
+  lastUpdated: string;          // ISO8601, required
+}
+
+export interface TaskResult {
+  success: boolean;
+  message: string;
+  data?: unknown;
+}
+
+export interface ContextBridgeConfig {
+  contextPath: string;
+  autoSync: boolean;
+  logLevel: 'debug' | 'info' | 'warn' | 'error';
 }
 
 // =============================================================================

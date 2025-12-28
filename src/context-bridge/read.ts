@@ -6,7 +6,7 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { Session, Decision, Task, CurrentFocus } from './types.js';
+import { Session, Decision, Task, CurrentFocus } from '../types.js';
 
 const getContextPath = () => process.env.JANUS_CONTEXT_PATH || './janus-context';
 
@@ -99,24 +99,31 @@ export async function listTasks(): Promise<Task[]> {
 
 function parseDecisionMarkdown(content: string, filename: string): Decision {
   // Simple markdown parser for decision files
-  // Format: DECISION_ID-topic.md
+  // Format: YYYY-MM-DD-topic.md
   const parts = filename.replace('.md', '').split('-');
-  const date = parts[0]; // YYYY-MM-DD
-  const topic = parts.slice(1).join('-');
+  const date = parts.slice(0, 3).join('-'); // YYYY-MM-DD
+  const topic = parts.slice(3).join('-');
 
   // Extract structured data from markdown
   const decisionMatch = content.match(/## Decision\n\n([\s\S]*?)\n## Rationale/);
   const rationaleMatch = content.match(/## Rationale\n\n([\s\S]*?)\n## Alternatives/);
   const alternativesMatch = content.match(/## Alternatives Considered\n\n([\s\S]*?)$/);
 
+  // Extract frontmatter values if present
+  const reversibleMatch = content.match(/\*\*Reversible:\*\*\s*(true|false)/i);
+  const confidenceMatch = content.match(/\*\*Confidence:\*\*\s*(\d+)/);
+  const madeByMatch = content.match(/\*\*Made By:\*\*\s*(\w+)/);
+
   return {
     id: filename.replace('.md', ''),
     date,
+    timestamp: new Date(date).toISOString(),
     topic: topic.replace(/-/g, ' '),
     decision: decisionMatch ? decisionMatch[1].trim() : '',
     rationale: rationaleMatch ? rationaleMatch[1].trim() : '',
-    madeBy: 'human', // Default, would be extracted from frontmatter
-    confidence: 80, // Default, would be extracted from frontmatter
+    madeBy: (madeByMatch ? madeByMatch[1].toLowerCase() : 'human') as Decision['madeBy'],
+    confidence: confidenceMatch ? parseInt(confidenceMatch[1], 10) : 80,
+    reversible: reversibleMatch ? reversibleMatch[1].toLowerCase() === 'true' : true,
     alternatives: alternativesMatch
       ? alternativesMatch[1]
         .split('\n')
