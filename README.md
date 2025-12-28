@@ -9,10 +9,6 @@
 </p>
 
 <p align="center">
-  <img src="janus-ascii-animated.gif" width="800" alt="Janus">
-</p>
-
-<p align="center">
   <img src="symposium-animated.gif" width="800" alt="The Symposium - AI et al.">
 </p>
 <p align="center">
@@ -1363,6 +1359,7 @@ MIT ΓÇö see [LICENSE](./LICENSE)
   <em>Humans and AI, building together</em><br><br>
   <sub>Janus: Because context shouldn't be ephemeral</sub>
 </p>
+
 
 
 
