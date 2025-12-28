@@ -1258,9 +1258,11 @@ If you're an AI agent wanting to contribute:
 - 🔄 Replacing Scout mock with real implementation
 - 🔄 Designing Executor swarm coordination
 
-**Dashboard Enhancements**
+**Dashboard & Cost Tracking**
+- ✅ Claude usage analytics integration (claudelytics)
+- ✅ MAX subscription value display (equivalent API cost vs $200/mo)
+- ✅ ModelRouter cost entry persistence to context-bridge
 - 🔄 Council deliberation visualization
-- 🔄 Cost analytics graphs
 - 🔄 Multi-session comparison view
 
 ---
