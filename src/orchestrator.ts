@@ -55,6 +55,7 @@ export class JanusOrchestrator {
       // Step 1: Create session
       console.log(`\n📋 Step 1: Creating session...`);
       this.currentSession = await this.contextBridge.createSession(description);
+      this.modelRouter.setSessionId(this.currentSession.id);
       console.log(`   ✅ Session ${this.currentSession.id.substring(0, 8)}... created`);
 
       // Step 2: Create execution plan
@@ -68,8 +69,14 @@ export class JanusOrchestrator {
       await this.executePlan(plan);
       console.log(`   ✅ Plan executed`);
 
-      // Step 4: Sync context
-      console.log(`\n💾 Step 4: Syncing context...`);
+      // Step 4: Persist costs
+      console.log(`\n💾 Step 4: Persisting costs...`);
+      await this.modelRouter.persistCosts();
+      this.modelRouter.clearCostEntries();
+      console.log(`   ✅ Costs persisted`);
+
+      // Step 5: Sync context
+      console.log(`\n💾 Step 5: Syncing context...`);
       await this.contextBridge.sync(`Completed task execution: ${description}`);
       console.log(`   ✅ Context synced to git`);
 
@@ -168,7 +175,14 @@ export class JanusOrchestrator {
         step.status = 'complete';
 
         // Update budget
-        this.modelRouter.updateBudget(routing.estimatedCost);
+        const inputTokens = Math.ceil(step.description.length / 4);
+        const outputTokens = Math.ceil(inputTokens * 0.5);
+        this.modelRouter.updateBudget(routing.estimatedCost, {
+          model: routing.model,
+          inputTokens,
+          outputTokens,
+          operation: step.type
+        });
 
         console.log(`      ✅ Complete`);
       } catch (error) {
