@@ -31,9 +31,8 @@
 - **Scout Swarm:** Haiku (fast, cheap research)
 - **Council Swarm:** Sonnet (balanced deliberation)
 - **Executor Swarm:** Sonnet (balanced execution with quality)
-- **Strategic Layer (Opus.ai):** Opus 4.5 (human interaction, architecture decisions)
-- **Rationale:** Optimal for $100-150 budget; Sonnet provides quality execution while Haiku keeps research costs low
-
+* **Strategic Layer:** Janus orchestrator (model‑agnostic top‑level reasoning)
+* **Rationale:** Orchestrator provides top‑level reasoning; Sonnet offers quality execution and Haiku keeps research costs low within $100‑150 budget
 ### 4. Claude-OS Backend: Anthropic
 - **Selected:** Anthropic backend (unified with primary API provider)
 - **Characteristics:**
