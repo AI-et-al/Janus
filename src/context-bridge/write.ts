@@ -68,10 +68,9 @@ export async function delegateTask(task: Task): Promise<void> {
   await fs.writeFile(taskPath, JSON.stringify(task, null, 2), 'utf-8');
 }
 
-export async function updateTaskStatus(
+export async function updateTask(
   taskId: string,
-  status: Task['status'],
-  result?: string
+  patch: Partial<Task>
 ): Promise<void> {
   const taskPath = path.join(
     getContextPath(),
@@ -83,14 +82,26 @@ export async function updateTaskStatus(
   try {
     const content = await fs.readFile(taskPath, 'utf-8');
     const task: Task = JSON.parse(content);
-    task.status = status;
-    if (result) task.result = result;
+    const sanitizedPatch = Object.fromEntries(
+      Object.entries(patch).filter(([, value]) => value !== undefined)
+    ) as Partial<Task>;
+    const updated: Task = { ...task, ...sanitizedPatch };
 
-    await fs.writeFile(taskPath, JSON.stringify(task, null, 2), 'utf-8');
+    await fs.writeFile(taskPath, JSON.stringify(updated, null, 2), 'utf-8');
   } catch (error) {
     console.error(`Failed to update task ${taskId}:`, error);
     throw error;
   }
+}
+
+export async function updateTaskStatus(
+  taskId: string,
+  status: Task['status'],
+  result?: string
+): Promise<void> {
+  const patch: Partial<Task> = { status };
+  if (result) patch.result = result;
+  await updateTask(taskId, patch);
 }
 
 export async function updateFocus(

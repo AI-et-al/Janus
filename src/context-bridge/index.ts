@@ -53,6 +53,10 @@ export class ContextBridge {
     return write.updateTaskStatus(taskId, status, result);
   }
 
+  async updateTask(taskId: string, patch: Partial<Task>): Promise<void> {
+    return write.updateTask(taskId, patch);
+  }
+
   async loadTask(id: string): Promise<Task> {
     return read.loadTask(id);
   }

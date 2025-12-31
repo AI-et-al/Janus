@@ -167,6 +167,32 @@ describe('ContextBridge', () => {
       expect(updated.result).toBe('Task completed successfully');
     });
 
+    it('should update task fields with a patch', async () => {
+      const task: Task = {
+        id: 'test-task-3',
+        description: 'Patch update test',
+        assignedTo: 'scout-swarm',
+        status: 'pending',
+        context: 'Patch context',
+        dependencies: [],
+        artifacts: [],
+        model: 'haiku'
+      };
+
+      await bridge.delegateTask(task);
+      await bridge.updateTask(task.id, {
+        status: 'running',
+        cost: 0.01,
+        error: 'Patch error'
+      });
+
+      const updated = await bridge.loadTask(task.id);
+      expect(updated.status).toBe('running');
+      expect(updated.cost).toBe(0.01);
+      expect(updated.error).toBe('Patch error');
+      expect(updated.description).toBe('Patch update test');
+    });
+
     it('should list tasks', async () => {
       const task1: Task = {
         id: 'task-1',

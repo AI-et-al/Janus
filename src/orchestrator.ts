@@ -136,13 +136,36 @@ export class JanusOrchestrator {
     return plan;
   }
 
+  private async persistPlanTasks(plan: ExecutionPlan): Promise<void> {
+    for (const [index, step] of plan.steps.entries()) {
+      const dependencies = index > 0 ? [plan.steps[index - 1]?.id || ''] : [];
+      const assignedTo: Task['assignedTo'] =
+        step.type === 'scout' ? 'scout-swarm' : step.type === 'council' ? 'council' : 'executor-swarm';
+
+      const delegatedTask: Task = {
+        id: step.id,
+        description: step.description,
+        assignedTo,
+        status: 'pending',
+        context: `session=${plan.sessionId};plan=${plan.id};step=${step.type}`,
+        dependencies: dependencies.filter(Boolean),
+        artifacts: [],
+        model: step.model
+      };
+
+      await this.contextBridge.delegateTask(delegatedTask);
+    }
+  }
+
   /**
    * Execute the plan steps
    */
   private async executePlan(plan: ExecutionPlan): Promise<void> {
+    await this.persistPlanTasks(plan);
     for (const step of plan.steps) {
       console.log(`\n   [${step.type.toUpperCase()}] ${step.description}`);
       step.status = 'running';
+      const stepStart = Date.now();
 
       try {
         // Get routing decision for this step
@@ -155,6 +178,12 @@ export class JanusOrchestrator {
         console.log(`      Provider: ${routing.provider} (${routing.model})`);
         console.log(`      Cost: $${routing.estimatedCost.toFixed(6)}`);
         console.log(`      Reason: ${routing.rationale}`);
+
+        await this.contextBridge.updateTask(step.id, {
+          status: 'running',
+          model: routing.model,
+          cost: routing.estimatedCost
+        });
 
         if (step.type === 'scout') {
           console.log(`      ⚡ Engaging Scout Swarm...`);
@@ -173,6 +202,11 @@ export class JanusOrchestrator {
         }
 
         step.status = 'complete';
+        await this.contextBridge.updateTask(step.id, {
+          status: 'complete',
+          result: step.result,
+          duration: Date.now() - stepStart
+        });
 
         // Update budget
         const inputTokens = Math.ceil(step.description.length / 4);
@@ -188,6 +222,11 @@ export class JanusOrchestrator {
       } catch (error) {
         step.status = 'failed';
         step.error = String(error);
+        await this.contextBridge.updateTask(step.id, {
+          status: 'failed',
+          error: String(error),
+          duration: Date.now() - stepStart
+        });
         console.log(`      ❌ Failed: ${error}`);
       }
     }
