@@ -248,23 +248,12 @@ describe('ContextBridge', () => {
 
   describe('Git Sync', () => {
     it('should handle sync with no git repo gracefully', async () => {
-      // This test will fail if git is not initialized, but should not throw catastrophically
-      try {
-        // In a real test, we'd initialize a git repo first
-        // For now, we'll test that the function exists and has proper error handling
-        expect(bridge.sync).toBeDefined();
-      } catch (e) {
-        // Expected if no git repo
-      }
+      await expect(bridge.sync('Test sync')).resolves.toBeUndefined();
     });
 
     it('should get history without errors', async () => {
-      try {
-        const history = await bridge.getHistory();
-        expect(Array.isArray(history)).toBe(true);
-      } catch (e) {
-        // Expected if no git repo - test that error is handled
-      }
+      const history = await bridge.getHistory();
+      expect(history).toEqual([]);
     });
   });
 
