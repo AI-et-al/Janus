@@ -1,1 +1,16 @@
-{"objective": "Build Janus v0.1", "phase": "foundation", "blockers": [], "nextActions": ["Set up Context Bridge", "Implement Council Protocol"]}
+{
+  "objective": "Remote Memory MCP pilot for cross-device, cross-model continuity",
+  "phase": "memory-federation-phase-1",
+  "blockers": [
+    "Decide managed vs self-hosted remote MCP",
+    "Define auth and access control"
+  ],
+  "nextActions": [
+    "Build thin MCP service (file + SQLite adapters)",
+    "Configure OpenCode remote MCP",
+    "Configure Gemini CLI remote MCP",
+    "Inject MCP context before model calls",
+    "Verify S1–S4 success criteria"
+  ],
+  "lastUpdated": "2025-12-28T22:18:36Z"
+}

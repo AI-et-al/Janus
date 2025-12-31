@@ -61,7 +61,7 @@
 **Existing Components:**
 - `ModelRouter` (Janus) - Real-time budget gating with in-memory tracking
 - `litellm_config.yaml` (workspace root) - Already configured with all providers:
-  - Anthropic (Claude Opus 4.5, Sonnet 4.5, Haiku 4.5)
+  - Anthropic (legacy experiments: Claude Opus, Sonnet, Haiku; not the current strategic layer)
   - OpenAI (GPT-5.2, GPT-5.2-pro, GPT-5.2-instant)
   - Google (Gemini 3, Gemini 3 Flash, Gemini 3 Pro)
   - Z.ai (GLM 4.7)

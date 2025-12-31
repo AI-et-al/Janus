@@ -21,7 +21,7 @@ Janus is a multi-model orchestration system that routes tasks across LLM provide
 ## Requirements
 
 ### Functional Requirements
-Derived from README.md and DOCUMENTATION.md feature lists:
+Derived from README.md and ARCHITECTURE.md feature lists:
 1. **Multi-model routing**: Route requests across Anthropic, OpenAI, and OpenRouter with model selection based on task complexity and budget (`src/model-router.ts`).
 2. **Persistent context**: Store sessions, decisions, and delegated tasks in a git-backed context store (`src/context-bridge/read.ts`, `src/context-bridge/write.ts`).
 3. **Bounded execution**: Orchestrator should execute tasks in discrete steps (scout → council → executor) with visible progress (`src/orchestrator.ts`).
@@ -40,8 +40,8 @@ Derived from CONFIGURATION.md:
 
 ## Architecture Decisions
 
-### Layered Architecture (from ARCHITECTURE.md and DOCUMENTATION.md)
-- **Strategic layer**: Human-in-the-loop planning via Opus 4.5 in claude.ai.
+### Layered Architecture (from ARCHITECTURE.md)
+- **Strategic layer**: Human-in-the-loop planning handled by the Janus orchestrator (model-agnostic top-level reasoning).
 - **Council deliberation**: Multi-model review (planned integration with llm-council).
 - **Execution**: Orchestrator coordinates bounded steps and (future) swarms.
 - **Persistence**: Context Bridge + git-backed store to synchronize sessions, decisions, and tasks across environments.
@@ -50,7 +50,7 @@ Derived from CONFIGURATION.md:
 - **Rationale**: Synchronize claude.ai strategic context with SDK/runtime execution, ensuring persistent memory across sessions.
 - **Mechanism**: `janus-context/` repo with sessions, decisions, state, and artifacts, with git sync for portability (`src/context-bridge/sync.ts`).
 
-### Component Responsibilities (from COMPONENT_ARCHITECTURE.md)
+### Component Responsibilities (from ARCHITECTURE.md)
 - **llm-council**: Multi-stage deliberation protocol with explicit disagreement surfacing.
 - **agentic-flow**: Provides swarm execution patterns, model routing, and learning/ReasoningBank storage.
 - **claudelytics**: Cost tracking and reporting.
@@ -61,7 +61,7 @@ Derived from CONFIGURATION.md:
 - **Budget**: $100–150/month with $150 hard limit.
 - **Logging**: Detailed, structured JSON logs.
 - **Deployment target**: Local Docker.
-- **Model tiers**: Scout = Haiku, Council = Sonnet, Executor = Sonnet, Strategic layer = Opus 4.5.
+- **Model tiers**: Scout = Haiku, Council = Sonnet, Executor = Sonnet, Strategic layer = Janus orchestrator (model-agnostic).
 - **Testing**: Unit + integration tests using Vitest.
 
 ## Data Models

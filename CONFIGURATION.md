@@ -1,205 +1,116 @@
-# Janus Configuration - Week 1 Implementation
+# Janus Configuration - Foundation Implementation
 
-**Status:** Locked configuration for Week 1-5 implementation
+**Status:** Locked configuration for the initial implementation phases
+
 **Date:** December 18, 2025
-**Configuration Version:** 1.0
 
-## User-Approved Configuration Decisions
+**Configuration Version:** 1.1
 
-### 1. API Provider Strategy: Multi-Cloud
-- **Selected:** Anthropic + OpenAI + OpenRouter
-- **Rationale:** Maximum flexibility and cost optimization
+This document captures configuration decisions approved by the user for the Janus project.  It supersedes the Week 1 plan and replaces references to the former strategic-layer model with the Janus orchestrator.
+
+## 1. API Provider Strategy: Multi-cloud
+
+- **Selected:** Anthropic, OpenAI and OpenRouter
+- **Rationale:** Flexibility and cost optimisation across providers[177272126167875 L143-L169]
 - **Implementation:**
-  - Use agentic-flow's `ModelRouter` for intelligent provider selection
+  - Use the model router to select the cheapest provider that meets the quality and latency requirements.
   - Primary: Anthropic Claude (quality)
-  - Secondary: OpenAI GPT (speed)
-  - Tertiary: OpenRouter (cost optimization, 85-99% savings possible)
+  - Secondary: OpenAI models (speed)
+  - Tertiary: OpenRouter (cost optimisation)
   - Automatic failover and cost-aware routing enabled
-- **Configuration Keys:** `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`
+- **Configuration keys:** `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`
 
-### 2. Monthly Budget: $100-150
-- **Selected:** $100-150/month (Recommended tier)
-- **Task Capacity:** 1000-2000 tasks/month
-- **Characteristics:**
-  - Balanced quality/cost trade-off
-  - Suitable for foundation phase (Weeks 1-4) and early production testing (Week 5)
-  - Allows premium model usage with strategic routing
-- **Budget Enforcement:** Automatic spend tracking with `$150/month hard limit`
-- **Tracking:** Cost logged per operation, per model, per session
+## 2. Monthly budget
 
-### 3. Agent Model Assignment: Default Tier
-- **Scout Swarm:** Haiku (fast, cheap research)
-- **Council Swarm:** Sonnet (balanced deliberation)
-- **Executor Swarm:** Sonnet (balanced execution with quality)
-* **Strategic Layer:** Janus orchestrator (model‑agnostic top‑level reasoning)
-* **Rationale:** Orchestrator provides top‑level reasoning; Sonnet offers quality execution and Haiku keeps research costs low within $100‑150 budget
-### 4. Claude-OS Backend: Anthropic
-- **Selected:** Anthropic backend (unified with primary API provider)
-- **Characteristics:**
-  - Highest quality code learning and indexing
-  - ~$20-40/month additional cost (included in $100-150 budget)
-  - Fast indexing (comparable to OpenAI backend)
-  - Integrated with main Anthropic API key
-- **Purpose:** Real-time learning from codebase patterns, executed task analysis, knowledge base building
-- **Alternative:** Local Ollama available if privacy/cost becomes critical priority
+- **Selected:** \$100-\$150 per month
+- **Capacity:** 1,000-2,000 tasks per month
+- **Characteristics:** Balanced quality/cost trade-off for early development
+- **Budget enforcement:** Hard limit at \$150; cost logged per operation and per session
 
-### 5. Deployment Target: Local Development
-- **Selected:** Local Docker deployment on development machine
-- **Characteristics:**
-  - Full control over execution
-  - Zero cloud infrastructure costs
-  - Suitable for Weeks 1-4 (foundation and swarm implementation)
-  - Week 5 will assess cloud migration needs
-- **Docker Support:** Docker Compose configuration provided; can scale to cloud via same Docker image
+## 3. Agent model assignment
 
-### 6. Observability & Logging: Detailed
-- **Selected:** Detailed logging across all operations
-- **Includes:**
-  - Core operations (create session, delegate task, record decision)
-  - All errors and warnings
-  - Performance metrics (latency per operation, task completion time)
-  - Task results and status updates
-  - Model selection traces (which provider chose which model, why)
-  - Cost per operation (inputs, outputs, estimated USD cost)
-  - Decision reasoning and alternatives considered
-- **Logging Format:** Structured JSON with timestamps
-- **Output:** Console + file logs in `logs/` directory
-- **Cost Impact:** Minimal (detailed logging is non-API overhead)
+- **Scout swarm:** Haiku (fast, inexpensive research)
+- **Council swarm:** Sonnet (balanced deliberation)
+- **Executor swarm:** Sonnet (balanced execution quality)
+- **Strategic reasoning:** **Janus orchestrator** (top-level agent responsible for planning and delegation)
+- **Rationale:** The orchestrator now performs strategic reasoning; no single external model controls the system.
 
-### 7. Testing Strategy: Unit + Integration
-- **Selected:** Unit tests + Integration tests (recommended balance)
-- **Test Coverage:**
-  - Context Bridge read/write operations
-  - Session and decision persistence
-  - Git sync operations
-  - CLI command execution
-  - Task delegation and status updates
-  - ModelRouter provider selection logic
-  - Cost tracking accuracy
-- **Test Framework:** Vitest (fast, ESM-native)
-- **Timeline Impact:** ~2 additional days in Week 1 for comprehensive tests
-- **CI/CD:** Github Actions for pre-commit testing
+## 4. Memory backend
 
-### 8. Cost Optimization: Automatic
+- **Selected:** Local file store (Git-backed) for initial phase
+- **Future:** Adapters for `claude-mem` and cloud KV stores[432503063334443 L138-L199]
+
+## 5. Deployment target
+
+- **Selected:** Local Docker deployment during early development
+- **Characteristics:** Full control, zero infrastructure cost; can scale to cloud later
+
+## 6. Observability and logging
+
+- **Selected:** Detailed JSON logging for core operations, errors, performance metrics and cost entries
+- **Output:** Console and log files in `logs/`
+- **Cost impact:** Negligible
+
+## 7. Testing strategy
+
+- **Selected:** Unit and integration tests
+- **Coverage:** Context bridge operations, session persistence, CLI commands, swarm calls, model router logic, cost tracking
+- **Framework:** Vitest
+- **CI:** GitHub Actions runs tests pre-commit
+
+## 8. Cost optimisation
+
 - **Selected:** Automatic smart routing and model selection
 - **Features:**
-  - Intelligent provider selection based on:
-    - Task complexity (simple → Haiku, complex → Sonnet/Opus)
-    - Response time requirements (slow acceptable → OpenRouter, fast required → Anthropic/OpenAI)
-    - Budget remaining (high budget → quality-first, low budget → cost-first)
-  - Automatic fallback if primary provider unavailable
-  - Per-operation cost estimation before execution
-  - Monthly budget enforcement (hard limit at $150)
-  - Weekly spend reports to CLI
-  - Cost-benefit analysis for multi-cloud switching
-- **Admin Controls:** Can override routing with manual provider specification
-- **Transparency:** All routing decisions logged with reasoning
+  - Provider selection based on complexity, latency and budget
+  - Per-operation cost estimation and monthly spend reports
+  - Manual override available via CLI flags
+- **Transparency:** All routing decisions are logged with reasoning
 
-### 9. Repository Structure: Git Submodules
-- **Context Store:** `janus-context/` (already initialized as separate git repo)
-- **Main Repository:** `Janus/` (main application code)
-- **External Dependencies:** Git submodules for:
-  - `agentic-flow` (orchestration engine)
-  - `llm-council` (deliberation protocol)
-  - `claude-os` (code learning)
-  - `claudelytics` (cost tracking)
-- **Rationale:** Separate versioning enables janus-context to sync independently while maintaining sync with external libraries
+## 9. Repository structure
 
-### 10. API Key Management
-- **Method:** Environment variables via `.env` file
-- **Required Keys:**
-  - `ANTHROPIC_API_KEY` (required immediately)
-  - `OPENAI_API_KEY` (optional, recommended for Week 2+)
-  - `OPENROUTER_API_KEY` (optional, recommended for cost optimization)
-  - `GITHUB_TOKEN` (for remote sync capability)
-- **Security:** `.env` is `.gitignore`'d, never committed
-- **Fallback:** Application works with Anthropic-only until keys provided
+- **Context store:** `janus-context/` (independent Git repository)
+- **Main repository:** `Janus/` (this code)
+- **External dependencies:** Git submodules for `agentic-flow`, `llm-council`, `claude-os` and `claudelytics`
+- **Rationale:** Independent versioning allows context store and dependencies to evolve separately
 
-## Configuration Files
+## 10. API key management
 
-### Environment (.env)
-```bash
-# API Keys
-ANTHROPIC_API_KEY=sk-ant-...
-OPENAI_API_KEY=sk-...
-OPENROUTER_API_KEY=sk-or-...
-GITHUB_TOKEN=ghp_...
+- **Method:** Environment variables via `.env`
+- **Required keys:** `ANTHROPIC_API_KEY` (immediate), `OPENAI_API_KEY` and `OPENROUTER_API_KEY` (optional), `GITHUB_TOKEN` (for remote sync)
+- **Security:** The `.env` file is `.gitignore`'d and never committed
 
-# Janus Configuration
-JANUS_CONTEXT_PATH=./janus-context
-JANUS_LOG_LEVEL=debug
-JANUS_BUDGET_MONTHLY=150
-JANUS_AUTO_SYNC=true
+## Implementation timeline
 
-# Feature Flags
-ENABLE_COST_OPTIMIZATION=true
-ENABLE_DETAILED_LOGGING=true
-ENABLE_MANIFESTO_INJECTION=true
-```
+Janus development will proceed in phases that align with the architecture described in `ARCHITECTURE.md`:
 
-### TypeScript Configuration (tsconfig.json)
-- Target: ES2022
-- Module: ESNext
-- Module Resolution: node
-- Strict mode: enabled
+- **Phase 1 - Foundation**
+  - Abstract the context bridge behind a storage interface and unify type definitions.
+  - Enhance the model router to load provider lists from configuration and emit cost events.
+  - Implement unit tests for the context bridge and model router.
 
-## Implementation Timeline
+- **Phase 2 - Swarms**
+  - Implement the scout swarm with real research APIs and verification protocols.
+  - Build the council swarm based on the deliberation protocol, including disagreement detection and synthesis.
+  - Develop the executor swarm with sandboxed code execution and artifact reporting.
+  - Extend the CLI and orchestrator to support asynchronous tasks.
 
-### Week 1: Foundation (Current Phase)
-- ✅ Context Bridge TypeScript modules (read, write, sync)
-- ✅ CLI with 5 commands (execute, sessions, focus, history, info)
-- 🔄 Tests for Context Bridge
-- 🔄 JanusOrchestrator skeleton
-- 🔄 Build system and initial deployment
+- **Phase 3 - Memory integration and analytics**
+  - Add adapters for `claude-mem` and cloud stores.
+  - Integrate with cost analytics providers (Langfuse, Helicone) and build a simple dashboard.
+  - Implement summarisation functions to control context size.
 
-### Week 2: Swarms
-- Scout Swarm (parallel research via agentic-flow federation)
-- Council Swarm (3-stage deliberation via llm-council)
-- Executor Swarm (code execution via Agent Booster)
+- **Phase 4 - Adaptive planning**
+  - Introduce dynamic task planners using large models and historical data.
+  - Add feedback loops to adjust model selection and confidence thresholds.
+  - Improve scalability through retries, fallbacks and load balancing.
 
-### Week 3: Memory Integration
-- Claude-OS learning system integration
-- ReasoningBank pattern optimization
-- Cross-layer context sync
+## Success metrics
 
-### Week 4: Analytics
-- Claudelytics cost tracking
-- Performance monitoring
-- Budget forecasting
-
-### Week 5: Optimization
-- Learned model selection
-- Auto-topology selection
-- Performance tuning based on metrics
-
-## Success Metrics
-
-### Week 1 Foundation
-- Context Bridge achieves 95%+ success rate on CRUD operations
-- CLI responds to all commands without errors
-- Tests pass at 90%+ coverage
-- Project builds and runs locally
-
-### Budget Compliance
-- Actual spend stays within $150/month budget (target: $80-120/month)
-- Per-task cost averages $0.05-0.15 with multi-cloud routing
-- Cost visibility in all CLI outputs
-
-### Quality Standards
-- No unhandled exceptions
-- All API errors logged with context
-- Decision reasoning captured for audit
-- Performance metrics tracked for optimization
+- **Foundation:** The context bridge passes >95% of CRUD tests; CLI commands operate without errors; unit tests achieve >90% coverage.
+- **Budget compliance:** Spend stays within the monthly limit; cost information is visible in CLI outputs.
+- **Quality:** No unhandled exceptions; decision reasoning and alternatives are captured for audit; performance metrics support optimisation.
 
 ## Notes
 
-- This configuration is flexible and can be adjusted in Week 2+ based on actual usage patterns
-- Cost optimization is conservative (prioritizes safety over savings initially)
-- Detailed logging will help identify optimization opportunities
-- Each week's deliverables can adjust configuration based on learnings
-- Configuration is stored in this file and enforced via environment variables
-
----
-
-**Last Updated:** December 18, 2025
-**Next Review:** End of Week 1 (December 24, 2025)
+Configuration parameters are flexible and may be revisited after each phase.  Detailed logging will help identify optimisation opportunities, and the user can adjust budgets or provider preferences via environment variables.

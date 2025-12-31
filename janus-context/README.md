@@ -13,7 +13,7 @@ This directory contains the persistent context state for the Janus multi-model A
 ## Purpose
 
 The Context Bridge synchronizes state between:
-1. Strategic layer (Claude.ai + Opus 4.5)
+1. Janus orchestrator (model-agnostic top-level reasoning)
 2. Execution layer (Claude Agent SDK)
 3. All swarms (Scout, Council, Executor)
 
