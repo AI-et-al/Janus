@@ -1,6 +1,7 @@
 # AGENTS.md
+## domo arigato gozaimasu steipete-sensei /bow ##
 
-Dave owns this. Start: say hi + 1 motivating line.  
+Dave owns this version. Start: say hi + 1 motivating line; Seneca or Marcus Aurelius works  
 Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 
 ## Environment: Windows 11 + WSL2 (for ~1 month)
