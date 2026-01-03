@@ -1,0 +1,53 @@
+{
+  "providerPreference": ["anthropic", "openai", "gemini", "openrouter"],
+  "models": [
+    {
+      "key": "haiku",
+      "provider": "anthropic",
+      "model": "claude-3-5-haiku-20241022",
+      "quality": "fast",
+      "costPerMTokIn": 0.8,
+      "costPerMTokOut": 4.0
+    },
+    {
+      "key": "sonnet",
+      "provider": "anthropic",
+      "model": "claude-3-5-sonnet-20241022",
+      "quality": "balanced",
+      "costPerMTokIn": 3.0,
+      "costPerMTokOut": 15.0
+    },
+    {
+      "key": "opus",
+      "provider": "anthropic",
+      "model": "claude-opus-4-5-20251101",
+      "quality": "quality",
+      "costPerMTokIn": 15.0,
+      "costPerMTokOut": 75.0
+    },
+    {
+      "key": "gpt-4",
+      "provider": "openai",
+      "model": "gpt-4-turbo",
+      "quality": "quality",
+      "costPerMTokIn": 10.0,
+      "costPerMTokOut": 30.0
+    },
+    {
+      "key": "gpt-4-turbo",
+      "provider": "openai",
+      "model": "gpt-4-turbo-preview",
+      "quality": "balanced",
+      "costPerMTokIn": 10.0,
+      "costPerMTokOut": 30.0
+    },
+    {
+      "key": "gemini-pro",
+      "provider": "gemini",
+      "model": "gemini-1.5-pro",
+      "quality": "balanced",
+      "costPerMTokIn": 10.0,
+      "costPerMTokOut": 30.0
+    }
+  ]
+}

@@ -7,7 +7,16 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { Session, Decision, Task, CurrentFocus, BudgetConfig } from '../types.js';
+import {
+  Session,
+  Decision,
+  Task,
+  CurrentFocus,
+  BudgetConfig,
+  ModelRatingEvent,
+  ModelTierSnapshot,
+  LastModelRun
+} from '../types.js';
 
 const getContextPath = () => process.env.JANUS_CONTEXT_PATH || './janus-context';
 
@@ -153,6 +162,42 @@ export async function clearBudgetConfig(): Promise<void> {
   }
 }
 
+export async function appendModelRating(event: ModelRatingEvent): Promise<void> {
+  const ratingsPath = path.join(getContextPath(), 'state', 'model-ratings.jsonl');
+  await ensureDir(path.dirname(ratingsPath));
+  await fs.appendFile(ratingsPath, `${JSON.stringify(event)}\n`, 'utf-8');
+}
+
+export async function saveModelTierSnapshot(snapshot: ModelTierSnapshot): Promise<void> {
+  const tiersPath = path.join(getContextPath(), 'state', 'model-tiers.json');
+  await ensureDir(path.dirname(tiersPath));
+  await fs.writeFile(tiersPath, JSON.stringify(snapshot, null, 2), 'utf-8');
+}
+
+export async function clearModelTierSnapshot(): Promise<void> {
+  const tiersPath = path.join(getContextPath(), 'state', 'model-tiers.json');
+  try {
+    await fs.unlink(tiersPath);
+  } catch {
+    // Ignore missing file
+  }
+}
+
+export async function clearModelRatings(): Promise<void> {
+  const ratingsPath = path.join(getContextPath(), 'state', 'model-ratings.jsonl');
+  try {
+    await fs.unlink(ratingsPath);
+  } catch {
+    // Ignore missing file
+  }
+}
+
+export async function saveLastModelRun(run: LastModelRun): Promise<void> {
+  const lastRunPath = path.join(getContextPath(), 'state', 'last-model-run.json');
+  await ensureDir(path.dirname(lastRunPath));
+  await fs.writeFile(lastRunPath, JSON.stringify(run, null, 2), 'utf-8');
+}
+
 function formatDecisionMarkdown(decision: Decision): string {
   return `# ${decision.topic}
 
@@ -217,8 +262,9 @@ async function upsertTaskIntoSession(task: Task): Promise<void> {
       session.delegatedTasks.push(task);
     }
 
-    if (task.model && !session.modelsInvolved.includes(task.model)) {
-      session.modelsInvolved.push(task.model);
+    const modelId = task.modelKey || task.model;
+    if (modelId && !session.modelsInvolved.includes(modelId)) {
+      session.modelsInvolved.push(modelId);
     }
 
     await saveSession(session);

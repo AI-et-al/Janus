@@ -10,6 +10,8 @@ import * as dotenv from 'dotenv';
 import { ContextBridge } from './context-bridge/index.js';
 import { getBudgetStatus } from './budget.js';
 import JanusOrchestrator from './orchestrator.js';
+import { v4 as uuidv4 } from 'uuid';
+import { recomputeModelTierSnapshot } from './model-feedback.js';
 
 dotenv.config();
 
@@ -97,6 +99,111 @@ const commands: Record<string, (args: string[]) => Promise<void>> = {
     }
   },
 
+  async models([action]) {
+    const subcommand = action || 'show';
+
+    if (subcommand === 'show' || subcommand === 'list') {
+      const catalog = await bridge.getModelRouterConfig();
+      if (!catalog?.models?.length) {
+        console.log('\nNo model catalog found at janus-context/state/models.json.');
+        return;
+      }
+
+      const snapshot = await bridge.getModelTierSnapshot();
+      console.log('\nModels (base vs learned tier):');
+
+      for (const model of catalog.models) {
+        const learned = snapshot?.tiers?.[model.key] ?? model.quality;
+        const score = snapshot?.scores?.[model.key];
+        const avg = snapshot?.avgRatings?.[model.key];
+        const count = snapshot?.ratingCounts?.[model.key] ?? 0;
+
+        console.log(`\n- ${model.key} (${model.provider}/${model.model})`);
+        console.log(`  Base tier:    ${model.quality}`);
+        console.log(`  Learned tier: ${learned}`);
+        if (snapshot) {
+          const avgText = typeof avg === 'number' ? avg.toFixed(2) : 'n/a';
+          const scoreText = typeof score === 'number' ? score.toFixed(3) : 'n/a';
+          console.log(`  Ratings:      ${count} (avg=${avgText}, score=${scoreText})`);
+        }
+      }
+
+      if (snapshot) {
+        console.log(`\nTier snapshot: ${snapshot.generatedAt} (${snapshot.algorithm})`);
+      } else {
+        console.log('\nTier snapshot: none (will appear after ratings accumulate)');
+      }
+      return;
+    }
+
+    if (subcommand === 'recompute') {
+      const catalog = await bridge.getModelRouterConfig();
+      if (!catalog?.models?.length) {
+        console.error('No model catalog found at janus-context/state/models.json.');
+        process.exit(1);
+      }
+
+      const allRatings = await bridge.listModelRatings();
+      const previous = await bridge.getModelTierSnapshot();
+      const snapshot = recomputeModelTierSnapshot(catalog, allRatings, { previous });
+      await bridge.saveModelTierSnapshot(snapshot);
+      await bridge.sync('Recomputed model tiers from peer ratings');
+      console.log('\nRecomputed model tiers and synced context.');
+      return;
+    }
+
+    if (subcommand === 'reset') {
+      await bridge.clearModelTierSnapshot();
+      await bridge.sync('Reset model tier snapshot');
+      console.log('\nCleared learned tier snapshot and synced context.');
+      return;
+    }
+
+    console.error('Usage: janus models [show|recompute|reset]');
+    process.exit(1);
+  },
+
+  async rate([ratingStr, ...notes]) {
+    const rating = Number(ratingStr);
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
+      console.error('Usage: janus rate <1-5> [notes]');
+      process.exit(1);
+    }
+
+    const lastRun = await bridge.getLastModelRun();
+    if (!lastRun) {
+      console.error('No last model run found at janus-context/state/last-model-run.json.');
+      process.exit(1);
+    }
+
+    const event = {
+      id: uuidv4(),
+      timestamp: new Date().toISOString(),
+      sessionId: lastRun.sessionId ?? 'unknown',
+      fromModelKey: 'human',
+      toModelKey: lastRun.modelKey,
+      toTaskId: lastRun.taskId,
+      rating: rating as 1 | 2 | 3 | 4 | 5,
+      rationale: notes.length ? notes.join(' ') : undefined,
+      method: 'manual' as const,
+      toCostUsd: lastRun.costUsd,
+      toLatencyMs: lastRun.latencyMs
+    };
+
+    await bridge.appendModelRating(event);
+
+    const catalog = await bridge.getModelRouterConfig();
+    if (catalog?.models?.length) {
+      const allRatings = await bridge.listModelRatings();
+      const previous = await bridge.getModelTierSnapshot();
+      const snapshot = recomputeModelTierSnapshot(catalog, allRatings, { previous });
+      await bridge.saveModelTierSnapshot(snapshot);
+    }
+
+    await bridge.sync(`Manual model rating: ${lastRun.modelKey}=${rating}`);
+    console.log(`\nSaved rating ${rating} for ${lastRun.modelKey} and synced context.`);
+  },
+
   async hello() {
     console.log('\n👋 Yes, I am communicating with you!');
     console.log('\n🔱 Janus is operational and ready to assist.');
@@ -121,6 +228,10 @@ const commands: Record<string, (args: string[]) => Promise<void>> = {
     console.log('  janus budget show     - Show budget status');
     console.log('  janus budget set <n>  - Override monthly budget');
     console.log('  janus budget clear    - Remove override');
+    console.log('  janus models          - Show model tiers (base vs learned)');
+    console.log('  janus models recompute - Recompute tiers from ratings');
+    console.log('  janus models reset    - Clear learned tier snapshot');
+    console.log('  janus rate <1-5> [notes] - Manually rate last model run');
     console.log('  janus info            - Show this help');
   },
 

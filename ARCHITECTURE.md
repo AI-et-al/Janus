@@ -21,7 +21,7 @@ Janus is organised into layered components to separate concerns and support exte
    * **Council swarm** - A panel of LLM advisors deliberates on questions.  Each advisor produces a structured proposal detailing reasoning, uncertainties and alternatives.  A disagreement detector highlights conflicting positions, and a synthesis step summarises consensus or requests human guidance.
    * **Executor swarm** - Executes code or multi-phase tasks in a sandbox.  Executors produce artifacts and logs and report success or failure.  They operate in small increments and must include tests when generating code.
 4. **Memory layer** - A pluggable context store persists sessions, decisions, delegated tasks and cost entries.  The current implementation uses a Git-backed file store, but adapters for `claude-mem` and cloud stores are planned[432503063334443 L138-L199].
-5. **Model router** - Maintains metadata about available models (cost per token, latency, quality) and selects the optimal model for each call[177272126167875 L143-L169].  It records cost entries and enforces per-session and monthly budgets.
+5. **Model router** - Maintains metadata about available models (cost per token, latency, quality) and selects the optimal model for each call[177272126167875 L143-L169].  It records cost entries and enforces per-session and monthly budgets.  Learned tier snapshots can override base quality tiers as peer ratings accumulate.
 6. **Analytics layer** - Collects cost and performance metrics and exposes them via the CLI and forthcoming dashboards.  It integrates with external tools (Langfuse, Helicone) for deeper analysis.
 
 ## Data flow
@@ -29,7 +29,7 @@ Janus is organised into layered components to separate concerns and support exte
 1. **Input** - The user submits a goal (e.g., "research an emerging market and design a model hierarchy").
 2. **Planning** - The orchestrator decomposes the goal into stages (research -> deliberation -> execution).  It estimates costs using the model router and asks for user confirmation if budgets may be exceeded.
 3. **Execution** - The orchestrator delegates research tasks to the scout swarm, deliberation tasks to the council swarm and implementation tasks to the executor swarm.  Each call uses the model router to select providers.  Costs and decisions are persisted in the context store.
-4. **Aggregation and feedback** - Results from the swarms are aggregated and summarised.  Disagreements are surfaced; the user may choose to iterate or refine the plan.  The orchestrator updates the current focus and session state.
+4. **Aggregation and feedback** - Results from the swarms are aggregated and summarised.  Disagreements are surfaced; the user may choose to iterate or refine the plan.  The orchestrator updates the current focus and session state and can capture peer ratings for the previous model run.
 5. **Iteration** - Long-horizon goals may require multiple cycles of research, deliberation and execution.  The context store retains all state for audit and reuse.
 
 ## Implementation roadmap

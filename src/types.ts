@@ -41,7 +41,9 @@ export interface Task {
   artifacts: string[];
   result?: string;
   error?: string;
-  model?: string;               // Model used for execution
+  modelKey?: string;            // Model key from models.json (e.g., "sonnet")
+  provider?: Provider;          // Provider selected by router
+  model?: string;               // Provider model id
   duration?: number;            // Execution time in ms
   cost?: number;                // Cost in USD
 }
@@ -69,6 +71,66 @@ export interface ContextBridgeConfig {
   contextPath: string;
   autoSync: boolean;
   logLevel: 'debug' | 'info' | 'warn' | 'error';
+}
+
+export type Provider = 'anthropic' | 'openai' | 'openrouter' | 'gemini';
+export type QualityTier = 'fast' | 'balanced' | 'quality';
+
+export interface RoutedModelConfig {
+  key: string;
+  provider: Provider;
+  model: string;
+  quality: QualityTier;
+  costPerMTokIn: number;
+  costPerMTokOut: number;
+}
+
+export interface ModelRouterConfig {
+  providerPreference?: Provider[];
+  models: RoutedModelConfig[];
+}
+
+// =============================================================================
+// Model Feedback / Tier Evolution
+// =============================================================================
+
+export type PeerRating = 1 | 2 | 3 | 4 | 5;
+
+export interface LastModelRun {
+  timestamp: string;            // ISO8601
+  sessionId: string;
+  taskId: string;
+  operation: string;
+  modelKey: string;
+  provider: Provider;
+  model: string;                // Provider model id
+  costUsd?: number;
+  latencyMs?: number;
+  resultExcerpt?: string;
+}
+
+export interface ModelRatingEvent {
+  id: string;
+  timestamp: string;            // ISO8601
+  sessionId: string;
+  fromModelKey: string;         // Model key or "human"
+  toModelKey: string;
+  toTaskId: string;
+  rating: PeerRating;
+  rationale?: string;
+  method: 'auto' | 'manual';
+  toCostUsd?: number;
+  toLatencyMs?: number;
+}
+
+export interface ModelTierSnapshot {
+  version: 1;
+  generatedAt: string;          // ISO8601
+  algorithm: 'peer-rating-v1';
+  tiers: Record<string, QualityTier>;
+  scores: Record<string, number>;
+  avgRatings: Record<string, number>;
+  ratingCounts: Record<string, number>;
 }
 
 // =============================================================================
@@ -178,10 +240,14 @@ export interface ExecutorResult {
 // =============================================================================
 
 export interface CostEntry {
+  id?: string;
   timestamp: string;
-  model: string;
+  model: string;                // Provider model id
+  modelKey?: string;
+  provider?: Provider;
   inputTokens: number;
   outputTokens: number;
+  latencyMs?: number;
   cost: number;
   operation: string;
 }

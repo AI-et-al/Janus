@@ -7,7 +7,18 @@
 import * as read from './read.js';
 import * as write from './write.js';
 import * as sync from './sync.js';
-import { Session, Decision, Task, CurrentFocus, BudgetConfig } from '../types.js';
+import {
+  Session,
+  Decision,
+  Task,
+  CurrentFocus,
+  BudgetConfig,
+  ModelRouterConfig,
+  ModelRatingEvent,
+  ModelTierSnapshot,
+  LastModelRun,
+  PeerRating
+} from '../types.js';
 
 export class ContextBridge {
   // Session management
@@ -86,6 +97,42 @@ export class ContextBridge {
     return write.clearBudgetConfig();
   }
 
+  async getModelRouterConfig(): Promise<ModelRouterConfig | null> {
+    return read.getModelRouterConfig();
+  }
+
+  async listModelRatings(limit?: number): Promise<ModelRatingEvent[]> {
+    return read.listModelRatings(limit);
+  }
+
+  async appendModelRating(event: ModelRatingEvent): Promise<void> {
+    return write.appendModelRating(event);
+  }
+
+  async getModelTierSnapshot(): Promise<ModelTierSnapshot | null> {
+    return read.getModelTierSnapshot();
+  }
+
+  async saveModelTierSnapshot(snapshot: ModelTierSnapshot): Promise<void> {
+    return write.saveModelTierSnapshot(snapshot);
+  }
+
+  async clearModelTierSnapshot(): Promise<void> {
+    return write.clearModelTierSnapshot();
+  }
+
+  async clearModelRatings(): Promise<void> {
+    return write.clearModelRatings();
+  }
+
+  async getLastModelRun(): Promise<LastModelRun | null> {
+    return read.getLastModelRun();
+  }
+
+  async saveLastModelRun(run: LastModelRun): Promise<void> {
+    return write.saveLastModelRun(run);
+  }
+
   // Git sync
   async sync(message: string): Promise<void> {
     return sync.syncContext(message);
@@ -103,5 +150,10 @@ export type {
   CurrentFocus,
   TaskResult,
   ContextBridgeConfig,
-  BudgetConfig
+  BudgetConfig,
+  ModelRouterConfig,
+  ModelRatingEvent,
+  ModelTierSnapshot,
+  LastModelRun,
+  PeerRating
 } from '../types.js';

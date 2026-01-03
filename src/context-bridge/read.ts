@@ -6,7 +6,17 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { Session, Decision, Task, CurrentFocus, BudgetConfig } from '../types.js';
+import {
+  Session,
+  Decision,
+  Task,
+  CurrentFocus,
+  BudgetConfig,
+  ModelRouterConfig,
+  ModelRatingEvent,
+  ModelTierSnapshot,
+  LastModelRun
+} from '../types.js';
 
 const getContextPath = () => process.env.JANUS_CONTEXT_PATH || './janus-context';
 
@@ -77,6 +87,61 @@ export async function getBudgetConfig(): Promise<BudgetConfig | null> {
   const budgetPath = path.join(getContextPath(), 'state', 'budget.json');
   try {
     const content = await fs.readFile(budgetPath, 'utf-8');
+    return JSON.parse(content);
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function getModelRouterConfig(): Promise<ModelRouterConfig | null> {
+  const configPath = path.join(getContextPath(), 'state', 'models.json');
+  try {
+    const content = await fs.readFile(configPath, 'utf-8');
+    return JSON.parse(content);
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function listModelRatings(limit?: number): Promise<ModelRatingEvent[]> {
+  const ratingsPath = path.join(getContextPath(), 'state', 'model-ratings.jsonl');
+  try {
+    const content = await fs.readFile(ratingsPath, 'utf-8');
+    const lines = content.split('\n').map(line => line.trim()).filter(Boolean);
+    const events: ModelRatingEvent[] = [];
+
+    for (const line of lines) {
+      try {
+        events.push(JSON.parse(line) as ModelRatingEvent);
+      } catch {
+        // Ignore malformed lines
+      }
+    }
+
+    if (limit !== undefined && events.length > limit) {
+      return events.slice(-limit);
+    }
+
+    return events;
+  } catch (error) {
+    return [];
+  }
+}
+
+export async function getModelTierSnapshot(): Promise<ModelTierSnapshot | null> {
+  const tiersPath = path.join(getContextPath(), 'state', 'model-tiers.json');
+  try {
+    const content = await fs.readFile(tiersPath, 'utf-8');
+    return JSON.parse(content);
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function getLastModelRun(): Promise<LastModelRun | null> {
+  const lastRunPath = path.join(getContextPath(), 'state', 'last-model-run.json');
+  try {
+    const content = await fs.readFile(lastRunPath, 'utf-8');
     return JSON.parse(content);
   } catch (error) {
     return null;

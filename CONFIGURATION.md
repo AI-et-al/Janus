@@ -10,15 +10,20 @@ This document captures configuration decisions approved by the user for the Janu
 
 ## 1. API Provider Strategy: Multi-cloud
 
-- **Selected:** Anthropic, OpenAI and OpenRouter
+- **Selected:** Anthropic, OpenAI, Google Gemini and OpenRouter
 - **Rationale:** Flexibility and cost optimisation across providers[177272126167875 L143-L169]
 - **Implementation:**
   - Use the model router to select the cheapest provider that meets the quality and latency requirements.
   - Primary: Anthropic Claude (quality)
-  - Secondary: OpenAI models (speed)
+  - Secondary: OpenAI and Gemini models (speed and balance)
   - Tertiary: OpenRouter (cost optimisation)
   - Automatic failover and cost-aware routing enabled
-- **Configuration keys:** `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`
+  - Model catalog lives in `janus-context/state/models.json` (provider order, quality tiers, pricing)
+  - Add or adjust models by editing `models.json` (no code change required)
+  - Learned tiers live in `janus-context/state/model-tiers.json`
+  - Peer ratings append to `janus-context/state/model-ratings.jsonl`
+  - Last-run pointer stored in `janus-context/state/last-model-run.json`
+- **Configuration keys:** `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`
 
 ## 2. Monthly budget
 
@@ -64,7 +69,7 @@ This document captures configuration decisions approved by the user for the Janu
 - **Features:**
   - Provider selection based on complexity, latency and budget
   - Per-operation cost estimation and monthly spend reports
-  - Manual override available via CLI flags
+  - Manual override available via CLI commands (`janus models`, `janus rate`)
 - **Transparency:** All routing decisions are logged with reasoning
 
 ## 9. Repository structure
@@ -113,4 +118,4 @@ Janus development will proceed in phases that align with the architecture descri
 
 ## Notes
 
-Configuration parameters are flexible and may be revisited after each phase.  Detailed logging will help identify optimisation opportunities, and the user can adjust budgets or provider preferences via environment variables.
+Configuration parameters are flexible and may be revisited after each phase.  Detailed logging will help identify optimisation opportunities, and the user can adjust budgets or provider preferences via environment variables.  Set `ENABLE_MODEL_PEER_RATINGS=false` to disable automatic peer ratings.

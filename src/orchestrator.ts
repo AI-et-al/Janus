@@ -9,8 +9,15 @@
  * - Executor Swarm (implementation)
  */
 
+import type { QualityTier, ModelRatingEvent } from './types.js';
+
 import { ContextBridge, Session, Task, Decision } from './context-bridge/index.js';
-import ModelRouter from './model-router.js';
+import ModelRouter, { type RoutingDecision } from './model-router.js';
+import {
+  buildPeerRatingPrompt,
+  parsePeerRatingResponse,
+  recomputeModelTierSnapshot
+} from './model-feedback.js';
 import { ScoutSwarm, ScoutTask } from './swarms/scout/index.js';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -26,7 +33,8 @@ export interface ExecutionStep {
   id: string;
   type: 'scout' | 'council' | 'executor';
   description: string;
-  model: string;
+  minQuality: QualityTier;
+  model?: string;
   status: 'pending' | 'running' | 'complete' | 'failed' | 'blocked';
   result?: string;
   error?: string;
@@ -106,7 +114,7 @@ export class JanusOrchestrator {
       id: uuidv4(),
       type: 'scout',
       description: `Research: ${task}`,
-      model: 'haiku',
+      minQuality: 'fast',
       status: 'pending'
     };
 
@@ -114,7 +122,7 @@ export class JanusOrchestrator {
       id: uuidv4(),
       type: 'council',
       description: `Deliberate on research findings`,
-      model: 'sonnet',
+      minQuality: 'balanced',
       status: 'pending'
     };
 
@@ -122,7 +130,7 @@ export class JanusOrchestrator {
       id: uuidv4(),
       type: 'executor',
       description: `Execute recommended approach`,
-      model: 'sonnet',
+      minQuality: 'balanced',
       status: 'pending'
     };
 
@@ -150,7 +158,7 @@ export class JanusOrchestrator {
         context: `session=${plan.sessionId};plan=${plan.id};step=${step.type}`,
         dependencies: dependencies.filter(Boolean),
         artifacts: [],
-        model: step.model
+        modelKey: step.model
       };
 
       await this.contextBridge.delegateTask(delegatedTask);
@@ -166,16 +174,18 @@ export class JanusOrchestrator {
       const step = plan.steps[index];
       console.log(`\n   [${step.type.toUpperCase()}] ${step.description}`);
       const stepStart = Date.now();
+      let routing: RoutingDecision | null = null;
 
       try {
         // Get routing decision for this step
-        const routing = await this.modelRouter.routeRequest(
+        routing = await this.modelRouter.routeRequest(
           step.description,
           step.type,
-          { model: step.model as any }
+          { model: step.model, minQuality: step.minQuality }
         );
 
         console.log(`      Provider: ${routing.provider} (${routing.model})`);
+        console.log(`      Model Key: ${routing.modelKey} (${routing.quality})`);
         console.log(`      Cost: $${routing.estimatedCost.toFixed(6)}`);
         console.log(`      Reason: ${routing.rationale}`);
 
@@ -206,9 +216,13 @@ export class JanusOrchestrator {
           break;
         }
 
+        await this.maybeAutoRatePreviousModel(routing, plan.sessionId);
+
         step.status = 'running';
         await this.contextBridge.updateTask(step.id, {
           status: 'running',
+          modelKey: routing.modelKey,
+          provider: routing.provider,
           model: routing.model,
           cost: routing.estimatedCost
         });
@@ -230,10 +244,11 @@ export class JanusOrchestrator {
         }
 
         step.status = 'complete';
+        const durationMs = Date.now() - stepStart;
         await this.contextBridge.updateTask(step.id, {
           status: 'complete',
           result: step.result,
-          duration: Date.now() - stepStart
+          duration: durationMs
         });
 
         // Update budget
@@ -241,22 +256,136 @@ export class JanusOrchestrator {
         const outputTokens = Math.ceil(inputTokens * 0.5);
         this.modelRouter.updateBudget(routing.estimatedCost, {
           model: routing.model,
+          modelKey: routing.modelKey,
+          provider: routing.provider,
           inputTokens,
           outputTokens,
+          latencyMs: durationMs,
           operation: step.type
+        });
+
+        await this.contextBridge.saveLastModelRun({
+          timestamp: new Date().toISOString(),
+          sessionId: plan.sessionId,
+          taskId: step.id,
+          operation: step.type,
+          modelKey: routing.modelKey,
+          provider: routing.provider,
+          model: routing.model,
+          costUsd: routing.estimatedCost,
+          latencyMs: durationMs,
+          resultExcerpt: (step.result ?? '').slice(0, 2000)
         });
 
         console.log(`      ✅ Complete`);
       } catch (error) {
+        const durationMs = Date.now() - stepStart;
         step.status = 'failed';
         step.error = String(error);
         await this.contextBridge.updateTask(step.id, {
           status: 'failed',
           error: String(error),
-          duration: Date.now() - stepStart
+          duration: durationMs
         });
+        if (routing) {
+          await this.contextBridge.saveLastModelRun({
+            timestamp: new Date().toISOString(),
+            sessionId: plan.sessionId,
+            taskId: step.id,
+            operation: step.type,
+            modelKey: routing.modelKey,
+            provider: routing.provider,
+            model: routing.model,
+            costUsd: routing.estimatedCost,
+            latencyMs: durationMs,
+            resultExcerpt: String(error).slice(0, 2000)
+          });
+        }
         console.log(`      ❌ Failed: ${error}`);
       }
+    }
+  }
+
+  private async maybeAutoRatePreviousModel(
+    rater: RoutingDecision,
+    sessionId: string
+  ): Promise<void> {
+    if (process.env.ENABLE_MODEL_PEER_RATINGS === 'false') {
+      return;
+    }
+
+    try {
+      const lastRun = await this.contextBridge.getLastModelRun();
+      if (!lastRun || !lastRun.modelKey || !lastRun.taskId) {
+        return;
+      }
+      if (lastRun.operation === 'model-rating') {
+        return;
+      }
+
+      const prompt = buildPeerRatingPrompt({
+        previousModelKey: lastRun.modelKey,
+        previousOperation: lastRun.operation,
+        previousTaskId: lastRun.taskId,
+        previousSessionId: lastRun.sessionId,
+        previousCostUsd: lastRun.costUsd,
+        previousLatencyMs: lastRun.latencyMs,
+        previousResultExcerpt: lastRun.resultExcerpt
+      });
+
+      const ratingResp = await this.modelRouter.invokeText(
+        { provider: rater.provider, model: rater.model },
+        prompt,
+        { maxTokens: 120, temperature: 0 }
+      );
+
+      const parsed = parsePeerRatingResponse(ratingResp.text);
+      if (!parsed) {
+        return;
+      }
+
+      const event: ModelRatingEvent = {
+        id: uuidv4(),
+        timestamp: new Date().toISOString(),
+        sessionId,
+        fromModelKey: rater.modelKey,
+        toModelKey: lastRun.modelKey,
+        toTaskId: lastRun.taskId,
+        rating: parsed.rating,
+        rationale: parsed.rationale,
+        method: 'auto',
+        toCostUsd: lastRun.costUsd,
+        toLatencyMs: lastRun.latencyMs
+      };
+
+      await this.contextBridge.appendModelRating(event);
+
+      const ratingCost = await this.modelRouter.estimateCostForModelKey(
+        rater.modelKey,
+        ratingResp.inputTokens,
+        ratingResp.outputTokens
+      );
+      if (ratingCost > 0) {
+        this.modelRouter.updateBudget(ratingCost, {
+          model: rater.model,
+          modelKey: rater.modelKey,
+          provider: rater.provider,
+          inputTokens: ratingResp.inputTokens,
+          outputTokens: ratingResp.outputTokens,
+          latencyMs: ratingResp.latencyMs,
+          operation: 'model-rating'
+        });
+      }
+
+      const catalog = (await this.contextBridge.getModelRouterConfig())
+        ?? (await this.modelRouter.getCatalog());
+      const allRatings = await this.contextBridge.listModelRatings();
+      const previous = await this.contextBridge.getModelTierSnapshot();
+      const snapshot = recomputeModelTierSnapshot(catalog, allRatings, { previous });
+      await this.contextBridge.saveModelTierSnapshot(snapshot);
+      this.modelRouter.refreshCatalog();
+    } catch (error) {
+      console.warn('Peer rating skipped:', error);
     }
   }
 

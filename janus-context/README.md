@@ -6,7 +6,11 @@ This directory contains the persistent context state for the Janus multi-model A
 
 - **sessions/** - Conversation summaries and execution records
 - **decisions/** - Architectural decisions and strategic choices
-- **state/** - Current focus, delegations, open questions
+- **state/** - Current focus, delegations, open questions, model catalog, and ratings
+- **state/models.json** - Model catalog (provider order, pricing, base tiers)
+- **state/model-ratings.jsonl** - Append-only peer ratings
+- **state/model-tiers.json** - Computed tier snapshot (fast/balanced/quality)
+- **state/last-model-run.json** - Pointer to the last model run (for rating)
 - **manifesto/** - The Manifesto (rules for all agents)
 - **artifacts/** - Generated code, documents, outputs
 
