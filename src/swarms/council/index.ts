@@ -7,16 +7,10 @@ import type {
   Provider,
   RoutedModelConfig
 } from '../../types.js';
+import { BudgetBlockedError } from '../../errors.js';
 import ModelRouter from '../../model-router.js';
 import { buildAdvisorPrompt, buildSynthesisPrompt, loadManifesto } from './prompts.js';
 import { parseProposal, parseSynthesis } from './parse.js';
-
-export class BudgetBlockedError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'BudgetBlockedError';
-  }
-}
 
 export interface CouncilRunResult {
   deliberation: Deliberation;

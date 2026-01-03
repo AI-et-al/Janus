@@ -257,6 +257,29 @@ export interface ExecutorTask {
   context: string;
 }
 
+export type ExecutorAction =
+  | {
+      type: 'write_file';
+      description: string;
+      path: string;
+      content: string;
+    }
+  | {
+      type: 'run_command';
+      description: string;
+      command: string[];
+      timeoutMs?: number;
+    };
+
+export interface ExecutorPlanV1 {
+  version: 1;
+  goal: string;
+  actions: ExecutorAction[];
+  successCriteria: string[];
+  assumptions?: string[];
+  risks?: string[];
+}
+
 export interface ExecutorResult {
   taskId: string;
   success: boolean;
@@ -265,6 +288,12 @@ export interface ExecutorResult {
   error?: string;
   executorId: string;
   latencyMs: number;
+  costUsd?: number;
+  inputTokens?: number;
+  outputTokens?: number;
+  modelKey?: string;
+  provider?: Provider;
+  model?: string;
 }
 
 // =============================================================================

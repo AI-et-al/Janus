@@ -18,9 +18,11 @@ import {
   parsePeerRatingResponse,
   recomputeModelTierSnapshot
 } from './model-feedback.js';
+import { BudgetBlockedError } from './errors.js';
 import { ensureModelFreshness } from './model-freshness/index.js';
 import { ScoutSwarm, ScoutTask } from './swarms/scout/index.js';
-import { CouncilSwarm, BudgetBlockedError } from './swarms/council/index.js';
+import { CouncilSwarm } from './swarms/council/index.js';
+import { ExecutorSwarm } from './swarms/executor/index.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface ExecutionPlan {
@@ -47,6 +49,7 @@ export class JanusOrchestrator {
   private modelRouter: ModelRouter;
   private scoutSwarm: ScoutSwarm;
   private councilSwarm: CouncilSwarm;
+  private executorSwarm: ExecutorSwarm;
   private currentSession: Session | null = null;
 
   constructor() {
@@ -54,6 +57,7 @@ export class JanusOrchestrator {
     this.modelRouter = new ModelRouter();
     this.scoutSwarm = new ScoutSwarm();
     this.councilSwarm = new CouncilSwarm(this.modelRouter);
+    this.executorSwarm = new ExecutorSwarm(this.modelRouter, this.contextBridge);
   }
 
   /**
@@ -269,21 +273,74 @@ export class JanusOrchestrator {
           const results = await this.scoutSwarm.execute([task]);
           step.result = JSON.stringify(results, null, 2);
           console.log(`      📝 Scout Results: ${results.length} items received`);
+
+          step.status = 'complete';
+          const durationMs = Date.now() - stepStart;
+          await this.contextBridge.updateTask(step.id, {
+            status: 'complete',
+            result: step.result,
+            duration: durationMs
+          });
+
+          console.log(`      ✅ Complete`);
+        } else if (step.type === 'executor') {
+          console.log(`      ⚡ Engaging Executor Swarm...`);
+          const priorResult = plan.steps[index - 1]?.result ?? '';
+          const execResult = await this.executorSwarm.run({
+            sessionId: plan.sessionId,
+            taskId: step.id,
+            goal: step.description,
+            priorContext: priorResult,
+            routing
+          });
+
+          step.result = execResult.output;
+          step.status = execResult.success ? 'complete' : 'failed';
+          step.error = execResult.error;
+
+          const durationMs = Date.now() - stepStart;
+          await this.contextBridge.updateTask(step.id, {
+            status: step.status,
+            result: step.result,
+            error: step.error,
+            duration: durationMs,
+            artifacts: execResult.artifacts,
+            modelKey: execResult.modelKey ?? routing.modelKey,
+            provider: execResult.provider ?? routing.provider,
+            model: execResult.model ?? routing.model,
+            cost: execResult.costUsd ?? routing.estimatedCost
+          });
+
+          await this.contextBridge.saveLastModelRun({
+            timestamp: new Date().toISOString(),
+            sessionId: plan.sessionId,
+            taskId: step.id,
+            operation: step.type,
+            modelKey: execResult.modelKey ?? routing.modelKey,
+            provider: execResult.provider ?? routing.provider,
+            model: execResult.model ?? routing.model,
+            costUsd: execResult.costUsd,
+            latencyMs: execResult.latencyMs,
+            resultExcerpt: (step.result ?? '').slice(0, 2000)
+          });
+
+          if (!execResult.success) {
+            throw new Error(execResult.error || 'Executor failed');
+          }
+
+          console.log(`      ✅ Complete`);
         } else {
-          // In Week 2, this will actually call the swarms
-          // For now, simulate completion
           step.result = `[Mock] Completed ${step.type} step`;
+          step.status = 'complete';
+          const durationMs = Date.now() - stepStart;
+          await this.contextBridge.updateTask(step.id, {
+            status: 'complete',
+            result: step.result,
+            duration: durationMs
+          });
+
+          console.log(`      ✅ Complete`);
         }
-
-        step.status = 'complete';
-        const durationMs = Date.now() - stepStart;
-        await this.contextBridge.updateTask(step.id, {
-          status: 'complete',
-          result: step.result,
-          duration: durationMs
-        });
-
-        console.log(`      ✅ Complete`);
       } catch (error) {
         const durationMs = Date.now() - stepStart;
         if (error instanceof BudgetBlockedError) {

@@ -30,7 +30,7 @@ Janus follows a **layered architecture** to separate concerns and support extens
 3. **Swarm layer** - Specialised swarms perform domain-specific work:
    * **Scout swarm** conducts research and verification against external resources (e.g., web search, package registries).  Agents must verify URLs, packages and documentation before citing them, abiding by the manifesto's "Draconian Scout Protocol."
    * **Council swarm** consists of multiple advisor models (Claude, GPT, Gemini, etc.) that deliberate on questions.  Each advisor presents a proposal with confidence, uncertainties and alternatives; disagreements are surfaced, not hidden.  A synthesis step produces a consensus or highlights issues requiring human input.
-   * **Executor swarm** performs code generation and execution in bounded phases, producing artifacts and logs.  Executors operate in sand-boxed environments and report success or failure with cost and latency.
+   * **Executor swarm** performs code generation and execution in bounded phases, producing artifacts and logs.  Executors operate in sandboxed environments, write artifacts under `janus-context/artifacts/<session>/<task>/` and report success or failure with cost and latency.
 4. **Memory layer** - A pluggable context store persists sessions, decisions, tasks and cost records.  The current implementation uses a Git-backed file store, but adapters for **claude-mem** and cloud key-value stores are planned.  The memory layer ensures cross-session continuity and enables auditing of past actions[432503063334443 L138-L199].
 5. **Model router** - An intelligent router selects the optimal model for each call based on available providers, cost per token and quality requirements.  It tracks budget usage, records cost entries and can persist session cost summaries for analytics[177272126167875 L143-L169].  Learned tier snapshots (fast/balanced/quality) can be applied from `janus-context/state/` as peer ratings accumulate.
 6. **Analytics layer** - Cost entries, latencies and success rates can be exported to analytics tools such as Langfuse or Helicone.  A future `janus-dashboard` will visualize budget usage and model performance.
@@ -44,11 +44,12 @@ Janus is under active development.  The foundations include:
 * **Context bridge** - A file-backed persistence layer that stores sessions, decisions and delegated tasks under `janus-context/`.  It can be synchronised via Git to share state across machines.
 * **Model router** - Routing logic for Anthropic, OpenAI and Gemini models with budget tracking and cost recording.  It selects models based on cost and quality constraints, with optional learned tier overrides from peer ratings[177272126167875 L33-L64].  Add or adjust entries in `janus-context/state/models.json` to include additional models.
 * **Model freshness** - At session start, Janus asks Oracle to refresh frontier model ids/pricing for critical keys and records status in `janus-context/state/model-catalog-status.json`.
+* **Executor swarm** - Runs a bounded plan (plan -> validate -> execute), writes artifacts to `janus-context/artifacts/`, and reports success/failure with cost and latency.
 * **CLI** - Basic commands to execute tasks, list sessions, view the current focus and check the context history.
 
 Upcoming milestones include:
 
-* Implementing **real swarms** (scout, council, executor) with concurrency and error handling.
+* Implementing a **real scout swarm** with external research APIs, verification and concurrency.
 * Integrating **claude-mem** for cross-instance memory and building a reasoning bank for reusable knowledge.
 * Adding **cost analytics and dashboards** for detailed spending breakdowns.
 * Developing **adaptive planners** that use large models to decompose high-level goals into sub-tasks.

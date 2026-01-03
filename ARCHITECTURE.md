@@ -19,7 +19,7 @@ Janus is organised into layered components to separate concerns and support exte
 3. **Swarm layer** - Specialised groups of agents handle domain-specific work:
    * **Scout swarm** - Performs research and verification.  Scouts search external resources (web, package registries) and must verify and timestamp each citation.  They follow the "Draconian Scout Protocol" from the manifesto[910682570583231 L106-L133].
    * **Council swarm** - A panel of LLM advisors deliberates on questions.  Each advisor produces a structured proposal detailing reasoning, uncertainties and alternatives.  A disagreement detector highlights conflicting positions, and a synthesis step summarises consensus or requests human guidance.
-   * **Executor swarm** - Executes code or multi-phase tasks in a sandbox.  Executors produce artifacts and logs and report success or failure.  They operate in small increments and must include tests when generating code.
+   * **Executor swarm** - Executes code or multi-phase tasks in a sandbox.  Executors produce artifacts and logs under `janus-context/artifacts/<session>/<task>/` and report success or failure.  They operate in small increments and must include tests when generating code.
 4. **Memory layer** - A pluggable context store persists sessions, decisions, delegated tasks and cost entries.  The current implementation uses a Git-backed file store, but adapters for `claude-mem` and cloud stores are planned[432503063334443 L138-L199].
 5. **Model router** - Maintains metadata about available models (cost per token, latency, quality) and selects the optimal model for each call[177272126167875 L143-L169].  It records cost entries and enforces per-session and monthly budgets.  Learned tier snapshots can override base quality tiers as peer ratings accumulate.
    * Model freshness is refreshed via Oracle at session start for critical (council/orchestrator) keys, with audit logs and a TTL-based status record.
@@ -44,8 +44,8 @@ Janus will evolve through phases that build on the foundation laid in Week 1:
    * Add unit tests for the context bridge and model router.
 2. **Phase 2 - Swarm implementation**
    * Replace the scout stub with real research agents using search APIs and package registries.  Implement staleness detection and verification.
-   * Implement the council swarm based on the deliberation protocol: advisors, disagreement detection and synthesis.
-   * Implement the executor swarm with multi-phase execution and sandboxed code runs.
+   * Council swarm implemented with advisors, disagreement detection and synthesis.
+   * Executor swarm implemented with plan/validate/execute loop and artifact logging.
    * Enhance the orchestrator to manage dependencies and asynchronous tasks.
 3. **Phase 3 - Memory and analytics**
    * Integrate `claude-mem` as an optional memory backend.  Add summarisation functions to keep context concise while retaining essential information.

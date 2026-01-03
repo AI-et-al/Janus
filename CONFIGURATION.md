@@ -55,6 +55,14 @@ This document captures configuration decisions approved by the user for the Janu
     `scripts/oracle-pricing-review.ps1` and writes `janus-context/state/oracle-pricing-review.json`.
   - Alerts: `JANUS_ALERT_LOG_PATH` (defaults to `C:\Users\dmcs\OneDrive\Documents\AI\Janus~\janus-alerts.log`)
 
+## 3.2 Executor safety controls
+
+- **Allowed commands:** `JANUS_EXECUTOR_ALLOW_CMDS` (default `node,npm,npx,tsx,vitest,git`)
+- **Allowed git subcommands:** `JANUS_EXECUTOR_ALLOW_GIT_SUBCMDS` (default `status,diff,log,rev-parse,show`)
+- **Max actions per plan:** `JANUS_EXECUTOR_MAX_ACTIONS` (default `8`)
+- **Max command runtime (ms):** `JANUS_EXECUTOR_MAX_COMMAND_MS` (default `120000`)
+- **Max file size (bytes):** `JANUS_EXECUTOR_MAX_FILE_BYTES` (default `200000`)
+
 ## 4. Memory backend
 
 - **Selected:** Local file store (Git-backed) for initial phase

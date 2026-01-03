@@ -7,6 +7,7 @@
 import * as read from './read.js';
 import * as write from './write.js';
 import * as sync from './sync.js';
+import * as artifacts from './artifacts.js';
 import {
   Session,
   Decision,
@@ -75,6 +76,24 @@ export class ContextBridge {
 
   async listTasks(): Promise<Task[]> {
     return read.listTasks();
+  }
+
+  async writeArtifactText(params: {
+    sessionId: string;
+    taskId: string;
+    name: string;
+    text: string;
+  }): Promise<string> {
+    return artifacts.writeArtifactText(params);
+  }
+
+  async writeArtifactJson(params: {
+    sessionId: string;
+    taskId: string;
+    name: string;
+    data: unknown;
+  }): Promise<string> {
+    return artifacts.writeArtifactJson(params);
   }
 
   // Focus management
