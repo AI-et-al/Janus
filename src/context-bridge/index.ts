@@ -7,7 +7,7 @@
 import * as read from './read.js';
 import * as write from './write.js';
 import * as sync from './sync.js';
-import { Session, Decision, Task, CurrentFocus } from '../types.js';
+import { Session, Decision, Task, CurrentFocus, BudgetConfig } from '../types.js';
 
 export class ContextBridge {
   // Session management
@@ -74,6 +74,18 @@ export class ContextBridge {
     return write.updateFocus(focus);
   }
 
+  async getBudgetConfig(): Promise<BudgetConfig | null> {
+    return read.getBudgetConfig();
+  }
+
+  async updateBudgetConfig(monthlyBudget: number): Promise<BudgetConfig> {
+    return write.updateBudgetConfig(monthlyBudget);
+  }
+
+  async clearBudgetConfig(): Promise<void> {
+    return write.clearBudgetConfig();
+  }
+
   // Git sync
   async sync(message: string): Promise<void> {
     return sync.syncContext(message);
@@ -90,5 +102,6 @@ export type {
   Task,
   CurrentFocus,
   TaskResult,
-  ContextBridgeConfig
+  ContextBridgeConfig,
+  BudgetConfig
 } from '../types.js';

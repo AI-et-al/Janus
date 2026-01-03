@@ -54,6 +54,11 @@ export interface CurrentFocus {
   lastUpdated: string;          // ISO8601, required
 }
 
+export interface BudgetConfig {
+  monthlyBudget: number;
+  updatedAt: string;            // ISO8601
+}
+
 export interface TaskResult {
   success: boolean;
   message: string;

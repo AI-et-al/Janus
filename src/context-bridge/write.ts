@@ -7,7 +7,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { Session, Decision, Task, CurrentFocus } from '../types.js';
+import { Session, Decision, Task, CurrentFocus, BudgetConfig } from '../types.js';
 
 const getContextPath = () => process.env.JANUS_CONTEXT_PATH || './janus-context';
 
@@ -124,6 +124,32 @@ export async function updateFocus(
   } catch (error) {
     console.error('Failed to update focus:', error);
     throw error;
+  }
+}
+
+export async function updateBudgetConfig(monthlyBudget: number): Promise<BudgetConfig> {
+  const budgetPath = path.join(getContextPath(), 'state', 'budget.json');
+  const config: BudgetConfig = {
+    monthlyBudget,
+    updatedAt: new Date().toISOString()
+  };
+
+  try {
+    await ensureDir(path.dirname(budgetPath));
+    await fs.writeFile(budgetPath, JSON.stringify(config, null, 2), 'utf-8');
+    return config;
+  } catch (error) {
+    console.error('Failed to update budget config:', error);
+    throw error;
+  }
+}
+
+export async function clearBudgetConfig(): Promise<void> {
+  const budgetPath = path.join(getContextPath(), 'state', 'budget.json');
+  try {
+    await fs.unlink(budgetPath);
+  } catch {
+    // Ignore missing file
   }
 }
 

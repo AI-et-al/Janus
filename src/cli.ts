@@ -8,6 +8,7 @@
 
 import * as dotenv from 'dotenv';
 import { ContextBridge } from './context-bridge/index.js';
+import { getBudgetStatus } from './budget.js';
 import JanusOrchestrator from './orchestrator.js';
 
 dotenv.config();
@@ -48,6 +49,54 @@ const commands: Record<string, (args: string[]) => Promise<void>> = {
     }
   },
 
+  async budget([action, value]) {
+    const subcommand = action || 'show';
+
+    if (subcommand === 'set') {
+      if (!value) {
+        console.error('Usage: janus budget set <monthlyBudgetUsd>');
+        process.exit(1);
+      }
+
+      const amount = Number(value);
+      if (!Number.isFinite(amount) || amount < 0) {
+        console.error('Monthly budget must be a non-negative number.');
+        process.exit(1);
+      }
+
+      const config = await bridge.updateBudgetConfig(amount);
+      console.log('\nBudget override saved.');
+      console.log(`  Monthly: $${config.monthlyBudget}`);
+      console.log(`  Updated: ${config.updatedAt}`);
+      return;
+    }
+
+    if (subcommand === 'clear' || subcommand === 'reset') {
+      await bridge.clearBudgetConfig();
+      console.log('\nBudget override cleared.');
+      console.log('  Using JANUS_BUDGET_MONTHLY or default $150.');
+      return;
+    }
+
+    if (subcommand !== 'show') {
+      console.error('Usage: janus budget [show|set|clear] [monthlyBudgetUsd]');
+      process.exit(1);
+    }
+
+    const status = getBudgetStatus();
+    const override = await bridge.getBudgetConfig();
+    console.log('\nBudget Status:');
+    console.log(`  Monthly: $${status.monthlyBudget}`);
+    console.log(`  Spent: $${status.spent.toFixed(2)}`);
+    console.log(`  Remaining: $${status.remaining.toFixed(2)}`);
+    console.log(`  Used: ${status.percentageUsed.toFixed(1)}%`);
+    if (override) {
+      console.log(`  Override: $${override.monthlyBudget} (set ${override.updatedAt})`);
+    } else {
+      console.log('  Override: none');
+    }
+  },
+
   async hello() {
     console.log('\n👋 Yes, I am communicating with you!');
     console.log('\n🔱 Janus is operational and ready to assist.');
@@ -69,6 +118,9 @@ const commands: Record<string, (args: string[]) => Promise<void>> = {
     console.log('  janus sessions        - List all sessions');
     console.log('  janus focus           - Show current focus');
     console.log('  janus history         - Show git history');
+    console.log('  janus budget show     - Show budget status');
+    console.log('  janus budget set <n>  - Override monthly budget');
+    console.log('  janus budget clear    - Remove override');
     console.log('  janus info            - Show this help');
   },
 

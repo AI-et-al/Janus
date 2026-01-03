@@ -6,7 +6,7 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { Session, Decision, Task, CurrentFocus } from '../types.js';
+import { Session, Decision, Task, CurrentFocus, BudgetConfig } from '../types.js';
 
 const getContextPath = () => process.env.JANUS_CONTEXT_PATH || './janus-context';
 
@@ -70,6 +70,16 @@ export async function getCurrentFocus(): Promise<CurrentFocus> {
   } catch (error) {
     console.error('Failed to load current focus:', error);
     throw error;
+  }
+}
+
+export async function getBudgetConfig(): Promise<BudgetConfig | null> {
+  const budgetPath = path.join(getContextPath(), 'state', 'budget.json');
+  try {
+    const content = await fs.readFile(budgetPath, 'utf-8');
+    return JSON.parse(content);
+  } catch (error) {
+    return null;
   }
 }
 

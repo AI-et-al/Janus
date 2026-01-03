@@ -11,9 +11,9 @@
 import Anthropic from '@anthropic-ai/sdk';
 import OpenAI from 'openai';
 import * as fs from 'fs/promises';
-import { existsSync, readdirSync, readFileSync } from 'fs';
 import * as path from 'path';
 import { CostEntry, SessionCosts } from './types.js';
+import { computeSpentThisMonthFromContext, getMonthlyBudget } from './budget.js';
 
 export type Provider = 'anthropic' | 'openai' | 'openrouter';
 export type Model = 'haiku' | 'sonnet' | 'opus' | 'gpt-4' | 'gpt-4-turbo';
@@ -82,8 +82,8 @@ export class ModelRouter {
       apiKey: process.env.OPENAI_API_KEY
     });
 
-    const monthlyBudget = parseFloat(process.env.JANUS_BUDGET_MONTHLY || '150');
-    const spentThisMonth = this.computeSpentThisMonthFromContext();
+    const monthlyBudget = getMonthlyBudget();
+    const spentThisMonth = computeSpentThisMonthFromContext();
     this.budgetRemaining = monthlyBudget - spentThisMonth;
     this.enableCostOptimization = process.env.ENABLE_COST_OPTIMIZATION === 'true';
   }
@@ -186,42 +186,6 @@ export class ModelRouter {
     const outputCost = (outTokens / 1_000_000) * config.costPerMTokOutput;
 
     return inputCost + outputCost;
-  }
-
-  private computeSpentThisMonthFromContext(): number {
-    const contextPath = process.env.JANUS_CONTEXT_PATH || './janus-context';
-    const costsDir = path.join(contextPath, 'costs');
-    if (!existsSync(costsDir)) {
-      return 0;
-    }
-
-    const monthKey = new Date().toISOString().slice(0, 7);
-    let total = 0;
-
-    try {
-      const files = readdirSync(costsDir).filter(file => file.endsWith('.json'));
-      for (const file of files) {
-        try {
-          const contents = readFileSync(path.join(costsDir, file), 'utf-8');
-          const sessionCosts = JSON.parse(contents) as SessionCosts;
-          if (!sessionCosts?.entries) {
-            continue;
-          }
-
-          for (const entry of sessionCosts.entries) {
-            if (entry?.timestamp?.slice(0, 7) === monthKey) {
-              total += Number(entry.cost || 0);
-            }
-          }
-        } catch (error) {
-          console.warn(`Failed to read cost file ${file}:`, error);
-        }
-      }
-    } catch (error) {
-      console.warn('Failed to read cost directory:', error);
-    }
-
-    return total;
   }
 
   /**
@@ -342,7 +306,7 @@ export class ModelRouter {
     remaining: number;
     percentageUsed: number;
   } {
-    const monthlyBudget = parseFloat(process.env.JANUS_BUDGET_MONTHLY || '150');
+    const monthlyBudget = getMonthlyBudget();
     const spent = monthlyBudget - this.budgetRemaining;
     return {
       monthlyBudget,
