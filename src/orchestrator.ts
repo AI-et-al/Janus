@@ -27,7 +27,7 @@ export interface ExecutionStep {
   type: 'scout' | 'council' | 'executor';
   description: string;
   model: string;
-  status: 'pending' | 'running' | 'complete' | 'failed';
+  status: 'pending' | 'running' | 'complete' | 'failed' | 'blocked';
   result?: string;
   error?: string;
 }
@@ -162,9 +162,9 @@ export class JanusOrchestrator {
    */
   private async executePlan(plan: ExecutionPlan): Promise<void> {
     await this.persistPlanTasks(plan);
-    for (const step of plan.steps) {
+    for (let index = 0; index < plan.steps.length; index++) {
+      const step = plan.steps[index];
       console.log(`\n   [${step.type.toUpperCase()}] ${step.description}`);
-      step.status = 'running';
       const stepStart = Date.now();
 
       try {
@@ -179,6 +179,34 @@ export class JanusOrchestrator {
         console.log(`      Cost: $${routing.estimatedCost.toFixed(6)}`);
         console.log(`      Reason: ${routing.rationale}`);
 
+        const budget = this.modelRouter.getBudgetStatus();
+        if (routing.estimatedCost > budget.remaining) {
+          const errorMessage = `Blocked: estimated cost $${routing.estimatedCost.toFixed(
+            6
+          )} exceeds remaining $${budget.remaining.toFixed(6)}`;
+          step.status = 'blocked';
+          step.error = errorMessage;
+          await this.contextBridge.updateTask(step.id, {
+            status: 'blocked',
+            error: errorMessage,
+            duration: Date.now() - stepStart
+          });
+
+          for (const blockedStep of plan.steps.slice(index + 1)) {
+            blockedStep.status = 'blocked';
+            blockedStep.error = 'Blocked: monthly budget exhausted';
+            await this.contextBridge.updateTask(blockedStep.id, {
+              status: 'blocked',
+              error: blockedStep.error,
+              duration: 0
+            });
+          }
+
+          console.log(`      ? ${errorMessage}`);
+          break;
+        }
+
+        step.status = 'running';
         await this.contextBridge.updateTask(step.id, {
           status: 'running',
           model: routing.model,
