@@ -66,6 +66,7 @@ export async function delegateTask(task: Task): Promise<void> {
   );
   await ensureDir(path.dirname(taskPath));
   await fs.writeFile(taskPath, JSON.stringify(task, null, 2), 'utf-8');
+  await upsertTaskIntoSession(task);
 }
 
 export async function updateTask(
@@ -88,6 +89,7 @@ export async function updateTask(
     const updated: Task = { ...task, ...sanitizedPatch };
 
     await fs.writeFile(taskPath, JSON.stringify(updated, null, 2), 'utf-8');
+    await upsertTaskIntoSession(updated);
   } catch (error) {
     console.error(`Failed to update task ${taskId}:`, error);
     throw error;
@@ -155,6 +157,47 @@ async function loadSessionSafe(id: string): Promise<Session | null> {
     return JSON.parse(content);
   } catch {
     return null;
+  }
+}
+
+function getSessionIdFromContext(context: string): string | null {
+  const prefix = 'session=';
+  for (const part of context.split(';')) {
+    const trimmed = part.trim();
+    if (trimmed.startsWith(prefix)) {
+      const sessionId = trimmed.slice(prefix.length).trim();
+      return sessionId || null;
+    }
+  }
+  return null;
+}
+
+async function upsertTaskIntoSession(task: Task): Promise<void> {
+  try {
+    const sessionId = getSessionIdFromContext(task.context);
+    if (!sessionId) {
+      return;
+    }
+
+    const session = await loadSessionSafe(sessionId);
+    if (!session) {
+      return;
+    }
+
+    const existingIndex = session.delegatedTasks.findIndex(item => item.id === task.id);
+    if (existingIndex >= 0) {
+      session.delegatedTasks[existingIndex] = task;
+    } else {
+      session.delegatedTasks.push(task);
+    }
+
+    if (task.model && !session.modelsInvolved.includes(task.model)) {
+      session.modelsInvolved.push(task.model);
+    }
+
+    await saveSession(session);
+  } catch (error) {
+    console.warn('Failed to upsert delegated task into session:', error);
   }
 }
 

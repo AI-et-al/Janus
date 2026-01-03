@@ -147,6 +147,27 @@ describe('ContextBridge', () => {
       expect(loaded.status).toBe('pending');
     });
 
+    it('should attach delegated tasks to the session', async () => {
+      const session = await bridge.createSession('Task attach test');
+      const task: Task = {
+        id: 'test-task-session-1',
+        description: 'Session task',
+        assignedTo: 'scout-swarm',
+        status: 'pending',
+        context: `session=${session.id};plan=plan-1;step=scout`,
+        dependencies: [],
+        artifacts: [],
+        model: 'haiku'
+      };
+
+      await bridge.delegateTask(task);
+
+      const loadedSession = await bridge.loadSession(session.id);
+      expect(loadedSession.delegatedTasks.length).toBe(1);
+      expect(loadedSession.delegatedTasks[0]?.id).toBe(task.id);
+      expect(loadedSession.modelsInvolved).toContain('haiku');
+    });
+
     it('should update task status', async () => {
       const task: Task = {
         id: 'test-task-2',
