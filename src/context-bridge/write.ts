@@ -13,8 +13,11 @@ import {
   Task,
   CurrentFocus,
   BudgetConfig,
+  ModelRouterConfig,
   ModelRatingEvent,
   ModelTierSnapshot,
+  ModelCatalogAuditEvent,
+  ModelCatalogStatus,
   LastModelRun
 } from '../types.js';
 
@@ -166,6 +169,24 @@ export async function appendModelRating(event: ModelRatingEvent): Promise<void> 
   const ratingsPath = path.join(getContextPath(), 'state', 'model-ratings.jsonl');
   await ensureDir(path.dirname(ratingsPath));
   await fs.appendFile(ratingsPath, `${JSON.stringify(event)}\n`, 'utf-8');
+}
+
+export async function saveModelRouterConfig(config: ModelRouterConfig): Promise<void> {
+  const configPath = path.join(getContextPath(), 'state', 'models.json');
+  await ensureDir(path.dirname(configPath));
+  await fs.writeFile(configPath, JSON.stringify(config, null, 2), 'utf-8');
+}
+
+export async function appendModelCatalogAudit(event: ModelCatalogAuditEvent): Promise<void> {
+  const auditPath = path.join(getContextPath(), 'state', 'model-catalog-audit.jsonl');
+  await ensureDir(path.dirname(auditPath));
+  await fs.appendFile(auditPath, `${JSON.stringify(event)}\n`, 'utf-8');
+}
+
+export async function saveModelCatalogStatus(status: ModelCatalogStatus): Promise<void> {
+  const statusPath = path.join(getContextPath(), 'state', 'model-catalog-status.json');
+  await ensureDir(path.dirname(statusPath));
+  await fs.writeFile(statusPath, JSON.stringify(status, null, 2), 'utf-8');
 }
 
 export async function saveModelTierSnapshot(snapshot: ModelTierSnapshot): Promise<void> {

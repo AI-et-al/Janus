@@ -109,6 +109,7 @@ const commands: Record<string, (args: string[]) => Promise<void>> = {
         return;
       }
 
+      const freshness = await bridge.getModelCatalogStatus();
       const snapshot = await bridge.getModelTierSnapshot();
       console.log('\nModels (base vs learned tier):');
 
@@ -132,6 +133,16 @@ const commands: Record<string, (args: string[]) => Promise<void>> = {
         console.log(`\nTier snapshot: ${snapshot.generatedAt} (${snapshot.algorithm})`);
       } else {
         console.log('\nTier snapshot: none (will appear after ratings accumulate)');
+      }
+
+      if (freshness) {
+        const last = freshness.lastVerifiedAt || 'never';
+        console.log(`\nCatalog freshness: ${freshness.status} (last verified ${last}, ttl ${freshness.ttlHours}h)`);
+        if (!freshness.criticalOk) {
+          console.log('Critical keys missing or stale; oracle refresh recommended.');
+        }
+      } else {
+        console.log('\nCatalog freshness: unknown (no status file found)');
       }
       return;
     }

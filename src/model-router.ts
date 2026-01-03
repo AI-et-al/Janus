@@ -15,12 +15,20 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { ContextBridge } from './context-bridge/index.js';
 import {
+  estimateUsdCost,
+  normalizeTokenUsage,
+  pricingFromUsdPerMillion,
+  type Pricing,
+  type TokenUsageNormalized
+} from './costing/tokentally.js';
+import {
   CostEntry,
   SessionCosts,
   Provider,
   QualityTier,
   ModelRouterConfig,
-  RoutedModelConfig
+  RoutedModelConfig,
+  ModelCatalogStatus
 } from './types.js';
 import { computeSpentThisMonthFromContext, getMonthlyBudget } from './budget.js';
 
@@ -117,6 +125,7 @@ export class ModelRouter {
   private sessionId: string | null = null;
   private catalog: ModelRouterConfig | null = null;
   private catalogLoaded = false;
+  private catalogStatus: ModelCatalogStatus | null = null;
 
   constructor() {
     this.anthropic = new Anthropic({
@@ -145,6 +154,7 @@ export class ModelRouter {
    */
   refreshCatalog(): void {
     this.catalog = null;
+    this.catalogStatus = null;
     this.catalogLoaded = false;
   }
 
@@ -228,6 +238,24 @@ export class ModelRouter {
       }
     }
 
+    const status = this.catalogStatus;
+    if (this.shouldPreferFrontier(task)) {
+      if (status?.status === 'fresh' && status.criticalOk) {
+        const criticalKeys = new Set(status.criticalKeys);
+        const frontierCandidates = candidates.filter(candidate => criticalKeys.has(candidate.config.key));
+        if (frontierCandidates.length > 0) {
+          candidates = frontierCandidates;
+          notes.push('Frontier-only routing applied for critical task.');
+        } else {
+          notes.push('No frontier candidates available; using all models.');
+        }
+      } else if (status) {
+        notes.push('Model freshness is stale; frontier routing skipped.');
+      } else {
+        notes.push('Model freshness status missing; frontier routing skipped.');
+      }
+    }
+
     if (candidates.length === 0) {
       candidates = this.buildCandidates(
         DEFAULT_MODEL_CATALOG.models,
@@ -307,6 +335,7 @@ export class ModelRouter {
     const bridge = new ContextBridge();
     const config = await bridge.getModelRouterConfig();
     const tierSnapshot = await bridge.getModelTierSnapshot();
+    this.catalogStatus = await bridge.getModelCatalogStatus();
 
     const baseCatalog = config?.models?.length ? config : DEFAULT_MODEL_CATALOG;
     const models = baseCatalog.models.map(model => {
@@ -320,6 +349,10 @@ export class ModelRouter {
     };
 
     return this.catalog;
+  }
+
+  private shouldPreferFrontier(task: string): boolean {
+    return task === 'planning' || task === 'council' || task === 'model-rating';
   }
 
   private isProviderAvailable(provider: Provider): boolean {
@@ -344,14 +377,36 @@ export class ModelRouter {
     return 3;
   }
 
+  private resolvePricingForModel(config: RoutedModelConfig): Pricing | null {
+    try {
+      return pricingFromUsdPerMillion({
+        inputUsdPerMillion: config.costPerMTokIn,
+        outputUsdPerMillion: config.costPerMTokOut
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  private normalizeUsage(inputTokens: number, outputTokens: number): TokenUsageNormalized {
+    return (
+      normalizeTokenUsage({ inputTokens, outputTokens }) || {
+        inputTokens: Math.max(0, Math.floor(inputTokens)),
+        outputTokens: Math.max(0, Math.floor(outputTokens)),
+        totalTokens: Math.max(0, Math.floor(inputTokens + outputTokens))
+      }
+    );
+  }
+
   private estimateCostForTokens(
     config: RoutedModelConfig,
     inputTokens: number,
     outputTokens: number
   ): number {
-    const inputCost = (inputTokens / 1_000_000) * config.costPerMTokIn;
-    const outputCost = (outputTokens / 1_000_000) * config.costPerMTokOut;
-    return inputCost + outputCost;
+    const usage = this.normalizeUsage(inputTokens, outputTokens);
+    const pricing = this.resolvePricingForModel(config);
+    const breakdown = estimateUsdCost({ usage, pricing });
+    return breakdown?.totalUsd ?? 0;
   }
 
   async estimateCostForModelKey(
@@ -365,7 +420,10 @@ export class ModelRouter {
       return 0;
     }
 
-    return this.estimateCostForTokens(model, inputTokens, outputTokens);
+    const usage = this.normalizeUsage(inputTokens, outputTokens);
+    const pricing = this.resolvePricingForModel(model);
+    const breakdown = estimateUsdCost({ usage, pricing });
+    return breakdown?.totalUsd ?? 0;
   }
 
   private buildCandidates(

@@ -18,6 +18,7 @@ import {
   parsePeerRatingResponse,
   recomputeModelTierSnapshot
 } from './model-feedback.js';
+import { ensureModelFreshness } from './model-freshness/index.js';
 import { ScoutSwarm, ScoutTask } from './swarms/scout/index.js';
 import { CouncilSwarm, BudgetBlockedError } from './swarms/council/index.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -68,6 +69,23 @@ export class JanusOrchestrator {
       this.currentSession = await this.contextBridge.createSession(description);
       this.modelRouter.setSessionId(this.currentSession.id);
       console.log(`   ✅ Session ${this.currentSession.id.substring(0, 8)}... created`);
+
+      const ttlHours = Number(process.env.JANUS_MODEL_FRESHNESS_TTL_HOURS || '48');
+      const criticalKeys = (process.env.JANUS_CRITICAL_MODEL_KEYS || 'sonnet,gpt-4-turbo,gemini-pro')
+        .split(',')
+        .map(key => key.trim())
+        .filter(Boolean);
+      const freshness = await ensureModelFreshness({
+        sessionId: this.currentSession.id,
+        ttlHours: Number.isFinite(ttlHours) ? ttlHours : 48,
+        criticalKeys
+      });
+      if (freshness.updated) {
+        this.modelRouter.refreshCatalog();
+      }
+      if (freshness.status.status !== 'fresh') {
+        console.warn('Model freshness is stale; continuing with last known catalog.');
+      }
 
       // Step 2: Create execution plan
       console.log(`\n🗺️  Step 2: Creating execution plan...`);

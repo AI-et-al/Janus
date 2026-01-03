@@ -41,6 +41,20 @@ This document captures configuration decisions approved by the user for the Janu
 - **Strategic reasoning:** **Janus orchestrator** (top-level agent responsible for planning and delegation)
 - **Rationale:** The orchestrator now performs strategic reasoning; no single external model controls the system.
 
+## 3.1 Model freshness housekeeping (frontier only)
+
+- **Selected:** Oracle-based refresh for council + orchestrator models
+- **Behavior:** At session start, Janus asks Oracle to refresh `janus-context/state/models.json` with current frontier
+  model ids + pricing for critical keys. It does not block execution if Oracle is unavailable.
+- **TTL:** 48 hours (`JANUS_MODEL_FRESHNESS_TTL_HOURS`)
+- **Critical keys:** `JANUS_CRITICAL_MODEL_KEYS` (default `sonnet,gpt-4-turbo,gemini-pro`)
+- **Status files:**
+  - `janus-context/state/model-catalog-status.json` (last verified + TTL + critical status)
+  - `janus-context/state/model-catalog-audit.jsonl` (append-only change log)
+  - Weekly review task: "Janus Oracle Pricing Review" (Windows Task Scheduler) runs
+    `scripts/oracle-pricing-review.ps1` and writes `janus-context/state/oracle-pricing-review.json`.
+  - Alerts: `JANUS_ALERT_LOG_PATH` (defaults to `C:\Users\dmcs\OneDrive\Documents\AI\Janus~\janus-alerts.log`)
+
 ## 4. Memory backend
 
 - **Selected:** Local file store (Git-backed) for initial phase

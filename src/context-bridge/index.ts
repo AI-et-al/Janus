@@ -16,8 +16,9 @@ import {
   ModelRouterConfig,
   ModelRatingEvent,
   ModelTierSnapshot,
-  LastModelRun,
-  PeerRating
+  ModelCatalogAuditEvent,
+  ModelCatalogStatus,
+  LastModelRun
 } from '../types.js';
 
 export class ContextBridge {
@@ -101,6 +102,22 @@ export class ContextBridge {
     return read.getModelRouterConfig();
   }
 
+  async saveModelRouterConfig(config: ModelRouterConfig): Promise<void> {
+    return write.saveModelRouterConfig(config);
+  }
+
+  async getModelCatalogStatus(): Promise<ModelCatalogStatus | null> {
+    return read.getModelCatalogStatus();
+  }
+
+  async saveModelCatalogStatus(status: ModelCatalogStatus): Promise<void> {
+    return write.saveModelCatalogStatus(status);
+  }
+
+  async appendModelCatalogAudit(event: ModelCatalogAuditEvent): Promise<void> {
+    return write.appendModelCatalogAudit(event);
+  }
+
   async listModelRatings(limit?: number): Promise<ModelRatingEvent[]> {
     return read.listModelRatings(limit);
   }
@@ -154,6 +171,8 @@ export type {
   ModelRouterConfig,
   ModelRatingEvent,
   ModelTierSnapshot,
+  ModelCatalogAuditEvent,
+  ModelCatalogStatus,
   LastModelRun,
   PeerRating
 } from '../types.js';

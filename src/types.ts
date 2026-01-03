@@ -133,6 +133,38 @@ export interface ModelTierSnapshot {
   ratingCounts: Record<string, number>;
 }
 
+export interface ModelCatalogChange {
+  modelKey: string;
+  provider: Provider;
+  before: RoutedModelConfig;
+  after: RoutedModelConfig;
+  reason?: string;
+}
+
+export interface ModelCatalogAuditEvent {
+  id: string;
+  timestamp: string;            // ISO8601
+  sessionId?: string;
+  source: 'oracle';
+  status: 'updated' | 'skipped' | 'failed';
+  ttlHours: number;
+  criticalKeys: string[];
+  changes: ModelCatalogChange[];
+  notes?: string;
+  error?: string;
+}
+
+export interface ModelCatalogStatus {
+  version: 1;
+  lastVerifiedAt?: string;       // ISO8601
+  ttlHours: number;
+  status: 'fresh' | 'stale' | 'unknown';
+  source: 'oracle';
+  criticalKeys: string[];
+  criticalOk: boolean;
+  notes?: string;
+}
+
 // =============================================================================
 // Council Types
 // =============================================================================

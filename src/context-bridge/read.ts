@@ -15,6 +15,7 @@ import {
   ModelRouterConfig,
   ModelRatingEvent,
   ModelTierSnapshot,
+  ModelCatalogStatus,
   LastModelRun
 } from '../types.js';
 
@@ -97,6 +98,16 @@ export async function getModelRouterConfig(): Promise<ModelRouterConfig | null> 
   const configPath = path.join(getContextPath(), 'state', 'models.json');
   try {
     const content = await fs.readFile(configPath, 'utf-8');
+    return JSON.parse(content);
+  } catch (error) {
+    return null;
+  }
+}
+
+export async function getModelCatalogStatus(): Promise<ModelCatalogStatus | null> {
+  const statusPath = path.join(getContextPath(), 'state', 'model-catalog-status.json');
+  try {
+    const content = await fs.readFile(statusPath, 'utf-8');
     return JSON.parse(content);
   } catch (error) {
     return null;

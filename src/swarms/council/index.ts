@@ -85,21 +85,46 @@ export class CouncilSwarm {
   async run(task: string, context?: string): Promise<CouncilRunResult> {
     const manifesto = await loadManifesto();
     const contextText = context?.trim() ?? '';
+    const criticalKeys = (process.env.JANUS_CRITICAL_MODEL_KEYS || '')
+      .split(',')
+      .map(key => key.trim())
+      .filter(Boolean);
+    const criticalSet = new Set(criticalKeys);
+
+    let advisors = this.advisors;
+    if (criticalSet.size > 0) {
+      const filtered = this.advisors.filter(advisor => criticalSet.has(advisor.modelKey));
+      if (filtered.length > 0) {
+        if (filtered.length !== this.advisors.length) {
+          console.log('      Council: restricting advisors to critical model keys.');
+        }
+        advisors = filtered;
+      }
+    }
+
+    let synthesisModelKey = this.synthesisModelKey;
+    if (criticalSet.size > 0 && !criticalSet.has(synthesisModelKey)) {
+      const replacement = advisors[0]?.modelKey;
+      if (replacement) {
+        console.log(`      Council: forcing synthesis model to ${replacement}.`);
+        synthesisModelKey = replacement;
+      }
+    }
 
     const catalog = await this.modelRouter.getCatalog();
     const modelsByKey = new Map(
       catalog.models.map(model => [model.key, model])
     );
 
-    const synthesisModel = modelsByKey.get(this.synthesisModelKey);
+    const synthesisModel = modelsByKey.get(synthesisModelKey);
     if (!synthesisModel) {
-      throw new Error(`Council synthesis model "${this.synthesisModelKey}" not found.`);
+      throw new Error(`Council synthesis model "${synthesisModelKey}" not found.`);
     }
     if (!this.isProviderConfigured(synthesisModel.provider)) {
       throw new Error(`Provider "${synthesisModel.provider}" is not configured.`);
     }
 
-    const advisorCandidates = this.advisors.map(advisor => {
+    const advisorCandidates = advisors.map(advisor => {
       const model = modelsByKey.get(advisor.modelKey);
       if (!model) {
         throw new Error(`Council advisor model "${advisor.modelKey}" not found.`);
@@ -157,7 +182,7 @@ export class CouncilSwarm {
       const advisorCost = plans.reduce((sum, plan) => sum + plan.estimatedCost, 0);
       const synthesisInputTokens = baseSynthesisTokens + plans.length * this.maxAdvisorTokens;
       const synthesisCost = await this.modelRouter.estimateCostForModelKey(
-        this.synthesisModelKey,
+        synthesisModelKey,
         synthesisInputTokens,
         this.maxSynthesisTokens
       );
@@ -294,7 +319,7 @@ export class CouncilSwarm {
     );
 
     const synthesisCost = await this.modelRouter.estimateCostForModelKey(
-      this.synthesisModelKey,
+      synthesisModelKey,
       synthesisResponse.inputTokens,
       synthesisResponse.outputTokens
     );
@@ -331,7 +356,7 @@ export class CouncilSwarm {
     return {
       deliberation,
       synthesisMeta: {
-        modelKey: this.synthesisModelKey,
+        modelKey: synthesisModelKey,
         provider: synthesisModel.provider,
         model: synthesisModel.model,
         inputTokens: synthesisResponse.inputTokens,

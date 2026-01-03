@@ -43,6 +43,7 @@ Janus is under active development.  The foundations include:
 
 * **Context bridge** - A file-backed persistence layer that stores sessions, decisions and delegated tasks under `janus-context/`.  It can be synchronised via Git to share state across machines.
 * **Model router** - Routing logic for Anthropic, OpenAI and Gemini models with budget tracking and cost recording.  It selects models based on cost and quality constraints, with optional learned tier overrides from peer ratings[177272126167875 L33-L64].  Add or adjust entries in `janus-context/state/models.json` to include additional models.
+* **Model freshness** - At session start, Janus asks Oracle to refresh frontier model ids/pricing for critical keys and records status in `janus-context/state/model-catalog-status.json`.
 * **CLI** - Basic commands to execute tasks, list sessions, view the current focus and check the context history.
 
 Upcoming milestones include:

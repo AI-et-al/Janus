@@ -22,6 +22,7 @@ Janus is organised into layered components to separate concerns and support exte
    * **Executor swarm** - Executes code or multi-phase tasks in a sandbox.  Executors produce artifacts and logs and report success or failure.  They operate in small increments and must include tests when generating code.
 4. **Memory layer** - A pluggable context store persists sessions, decisions, delegated tasks and cost entries.  The current implementation uses a Git-backed file store, but adapters for `claude-mem` and cloud stores are planned[432503063334443 L138-L199].
 5. **Model router** - Maintains metadata about available models (cost per token, latency, quality) and selects the optimal model for each call[177272126167875 L143-L169].  It records cost entries and enforces per-session and monthly budgets.  Learned tier snapshots can override base quality tiers as peer ratings accumulate.
+   * Model freshness is refreshed via Oracle at session start for critical (council/orchestrator) keys, with audit logs and a TTL-based status record.
 6. **Analytics layer** - Collects cost and performance metrics and exposes them via the CLI and forthcoming dashboards.  It integrates with external tools (Langfuse, Helicone) for deeper analysis.
 
 ## Data flow
