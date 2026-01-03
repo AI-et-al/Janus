@@ -23,6 +23,7 @@ This document captures configuration decisions approved by the user for the Janu
   - Learned tiers live in `janus-context/state/model-tiers.json`
   - Peer ratings append to `janus-context/state/model-ratings.jsonl`
   - Last-run pointer stored in `janus-context/state/last-model-run.json`
+  - Peer ratings capture quality only; cost/latency are applied in the tier algorithm
 - **Configuration keys:** `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `GEMINI_API_KEY`, `OPENROUTER_API_KEY`
 
 ## 2. Monthly budget

@@ -319,7 +319,13 @@ export class JanusOrchestrator {
       if (!lastRun || !lastRun.modelKey || !lastRun.taskId) {
         return;
       }
+      if (lastRun.sessionId !== sessionId) {
+        return;
+      }
       if (lastRun.operation === 'model-rating') {
+        return;
+      }
+      if (lastRun.modelKey === rater.modelKey) {
         return;
       }
 
