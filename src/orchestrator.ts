@@ -19,6 +19,7 @@ import {
   recomputeModelTierSnapshot
 } from './model-feedback.js';
 import { ScoutSwarm, ScoutTask } from './swarms/scout/index.js';
+import { CouncilSwarm, BudgetBlockedError } from './swarms/council/index.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface ExecutionPlan {
@@ -44,12 +45,14 @@ export class JanusOrchestrator {
   private contextBridge: ContextBridge;
   private modelRouter: ModelRouter;
   private scoutSwarm: ScoutSwarm;
+  private councilSwarm: CouncilSwarm;
   private currentSession: Session | null = null;
 
   constructor() {
     this.contextBridge = new ContextBridge();
     this.modelRouter = new ModelRouter();
     this.scoutSwarm = new ScoutSwarm();
+    this.councilSwarm = new CouncilSwarm(this.modelRouter);
   }
 
   /**
@@ -121,7 +124,7 @@ export class JanusOrchestrator {
     const councilStep: ExecutionStep = {
       id: uuidv4(),
       type: 'council',
-      description: `Deliberate on research findings`,
+      description: `Deliberate: ${task}`,
       minQuality: 'balanced',
       status: 'pending'
     };
@@ -177,6 +180,44 @@ export class JanusOrchestrator {
       let routing: RoutingDecision | null = null;
 
       try {
+        if (step.type === 'council') {
+          step.status = 'running';
+          await this.contextBridge.updateTask(step.id, { status: 'running' });
+
+          const priorResult = plan.steps[index - 1]?.result ?? '';
+          const councilResult = await this.councilSwarm.run(step.description, priorResult);
+
+          step.result = JSON.stringify(councilResult.deliberation, null, 2);
+          step.status = 'complete';
+          const durationMs = Date.now() - stepStart;
+
+          await this.contextBridge.updateTask(step.id, {
+            status: 'complete',
+            result: step.result,
+            duration: durationMs,
+            modelKey: councilResult.synthesisMeta.modelKey,
+            provider: councilResult.synthesisMeta.provider,
+            model: councilResult.synthesisMeta.model,
+            cost: councilResult.deliberation.totalCost
+          });
+
+          await this.contextBridge.saveLastModelRun({
+            timestamp: new Date().toISOString(),
+            sessionId: plan.sessionId,
+            taskId: step.id,
+            operation: step.type,
+            modelKey: councilResult.synthesisMeta.modelKey,
+            provider: councilResult.synthesisMeta.provider,
+            model: councilResult.synthesisMeta.model,
+            costUsd: councilResult.synthesisMeta.costUsd,
+            latencyMs: councilResult.synthesisMeta.latencyMs,
+            resultExcerpt: (step.result ?? '').slice(0, 2000)
+          });
+
+          console.log(`      ✅ Complete`);
+          continue;
+        }
+
         // Get routing decision for this step
         routing = await this.modelRouter.routeRequest(
           step.description,
@@ -188,33 +229,6 @@ export class JanusOrchestrator {
         console.log(`      Model Key: ${routing.modelKey} (${routing.quality})`);
         console.log(`      Cost: $${routing.estimatedCost.toFixed(6)}`);
         console.log(`      Reason: ${routing.rationale}`);
-
-        const budget = this.modelRouter.getBudgetStatus();
-        if (routing.estimatedCost > budget.remaining) {
-          const errorMessage = `Blocked: estimated cost $${routing.estimatedCost.toFixed(
-            6
-          )} exceeds remaining $${budget.remaining.toFixed(6)}`;
-          step.status = 'blocked';
-          step.error = errorMessage;
-          await this.contextBridge.updateTask(step.id, {
-            status: 'blocked',
-            error: errorMessage,
-            duration: Date.now() - stepStart
-          });
-
-          for (const blockedStep of plan.steps.slice(index + 1)) {
-            blockedStep.status = 'blocked';
-            blockedStep.error = 'Blocked: monthly budget exhausted';
-            await this.contextBridge.updateTask(blockedStep.id, {
-              status: 'blocked',
-              error: blockedStep.error,
-              duration: 0
-            });
-          }
-
-          console.log(`      ? ${errorMessage}`);
-          break;
-        }
 
         await this.maybeAutoRatePreviousModel(routing, plan.sessionId);
 
@@ -251,35 +265,33 @@ export class JanusOrchestrator {
           duration: durationMs
         });
 
-        // Update budget
-        const inputTokens = Math.ceil(step.description.length / 4);
-        const outputTokens = Math.ceil(inputTokens * 0.5);
-        this.modelRouter.updateBudget(routing.estimatedCost, {
-          model: routing.model,
-          modelKey: routing.modelKey,
-          provider: routing.provider,
-          inputTokens,
-          outputTokens,
-          latencyMs: durationMs,
-          operation: step.type
-        });
-
-        await this.contextBridge.saveLastModelRun({
-          timestamp: new Date().toISOString(),
-          sessionId: plan.sessionId,
-          taskId: step.id,
-          operation: step.type,
-          modelKey: routing.modelKey,
-          provider: routing.provider,
-          model: routing.model,
-          costUsd: routing.estimatedCost,
-          latencyMs: durationMs,
-          resultExcerpt: (step.result ?? '').slice(0, 2000)
-        });
-
         console.log(`      ✅ Complete`);
       } catch (error) {
         const durationMs = Date.now() - stepStart;
+        if (error instanceof BudgetBlockedError) {
+          const errorMessage = error.message;
+          step.status = 'blocked';
+          step.error = errorMessage;
+          await this.contextBridge.updateTask(step.id, {
+            status: 'blocked',
+            error: errorMessage,
+            duration: durationMs
+          });
+
+          for (const blockedStep of plan.steps.slice(index + 1)) {
+            blockedStep.status = 'blocked';
+            blockedStep.error = 'Blocked: monthly budget exhausted';
+            await this.contextBridge.updateTask(blockedStep.id, {
+              status: 'blocked',
+              error: blockedStep.error,
+              duration: 0
+            });
+          }
+
+          console.log(`      ? ${errorMessage}`);
+          break;
+        }
+
         step.status = 'failed';
         step.error = String(error);
         await this.contextBridge.updateTask(step.id, {
@@ -287,20 +299,6 @@ export class JanusOrchestrator {
           error: String(error),
           duration: durationMs
         });
-        if (routing) {
-          await this.contextBridge.saveLastModelRun({
-            timestamp: new Date().toISOString(),
-            sessionId: plan.sessionId,
-            taskId: step.id,
-            operation: step.type,
-            modelKey: routing.modelKey,
-            provider: routing.provider,
-            model: routing.model,
-            costUsd: routing.estimatedCost,
-            latencyMs: durationMs,
-            resultExcerpt: String(error).slice(0, 2000)
-          });
-        }
         console.log(`      ❌ Failed: ${error}`);
       }
     }
