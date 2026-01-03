@@ -1,7 +1,11 @@
+<p align="center">
+  <img src="janus-color2.png" width="60%" alt="Janus" />
+</p>
+
 # Janus: Multi-Model Orchestration Platform
 
 <p align="center">
-  <img src="janus-color2.png" width="60%" alt="Janus" />
+  <img src="symposium-animated.gif" width="100%" alt="Janus ASCII" />
 </p>
 
 Janus is a research and engineering platform for coordinating multiple large-language models (LLMs) and tool-using agents over long-horizon tasks.  It combines a **context bridge** for persistent state, a **model router** for cost-aware provider selection, and a layered **swarm architecture** designed to decompose complex goals into observable, verifiable steps.  The system's name evokes the Roman deity Janus, whose two faces look both backward and forward: Janus remembers past sessions via persistent memory while planning and executing future actions.
