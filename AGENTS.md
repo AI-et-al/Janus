@@ -1,3 +1,5 @@
+READ ../vendor/agent-scripts/AGENTS.MD BEFORE ANYTHING (skip if missing).
+
 # AGENTS.md
 ## domo arigato gozaimasu steipete-sensei /bow ##
 
@@ -37,7 +39,7 @@ Work style: telegraph; noun-phrases ok; drop grammar; min tokens.
 - "MacBook/Mac Studio" concept:
   - Translate to **remote jumpbox/lab host**.
   - Find hosts via **PowerShell** `tailscale status` (if installed) or `~/.ssh/config`.
-- Files: current repo or `~/Projects/agent-scripts` (if present).
+- Files: current repo or `../vendor/agent-scripts` (if present).
 - PRs: use `gh pr view/diff` (no URLs unless the user gives one).
 - "Make a note" => edit **AGENTS.md** (shortcut; not a blocker). Ignore `CLAUDE.md`.
 - No `./runner`. Guardrails for deletes:
@@ -106,7 +108,7 @@ Goal: get the right image, confirm dimensions, optimize, replace asset w/o chang
 ## Important Locations
 - Work repos (WSL): `~/Projects`
 - Ops/runbooks: `~/Projects/ops/docs/`
-- Agent scripts (optional): `~/Projects/agent-scripts/`
+- Agent scripts (optional): `../vendor/agent-scripts/`
 - Windows-side working folder (if needed): `C:\Users\<YOU>\Downloads\` / `C:\Users\<YOU>\Desktop\`
 
 ---
