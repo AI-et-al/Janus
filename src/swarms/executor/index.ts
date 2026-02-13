@@ -189,8 +189,8 @@ export class ExecutorSwarm {
           actionResults.push({
             index: i,
             type: action.type,
-            command: action.command,
-            ...result
+            ...result,
+            command: action.command
           });
 
           if (result.timedOut || result.exitCode !== 0) {

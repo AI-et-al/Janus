@@ -405,8 +405,11 @@ export class ModelRouter {
   ): number {
     const usage = this.normalizeUsage(inputTokens, outputTokens);
     const pricing = this.resolvePricingForModel(config);
+    if (!pricing) {
+      return 0;
+    }
     const breakdown = estimateUsdCost({ usage, pricing });
-    return breakdown?.totalUsd ?? 0;
+    return breakdown.totalUsd;
   }
 
   async estimateCostForModelKey(
@@ -422,8 +425,11 @@ export class ModelRouter {
 
     const usage = this.normalizeUsage(inputTokens, outputTokens);
     const pricing = this.resolvePricingForModel(model);
+    if (!pricing) {
+      return 0;
+    }
     const breakdown = estimateUsdCost({ usage, pricing });
-    return breakdown?.totalUsd ?? 0;
+    return breakdown.totalUsd;
   }
 
   private buildCandidates(
