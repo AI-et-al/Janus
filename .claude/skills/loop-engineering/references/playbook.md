@@ -1,10 +1,10 @@
 # The Loop Engineering Playbook (distilled)
 
-Distilled from *"Loop Engineering: The Anthropic Playbook for Designing
-Systems That Prompt Your Agents"* (HuaShu Orange Books v260615, June 2026),
-synthesizing Addy Osmani's framework, Prithvi Rajasekaran's
-generator/evaluator findings (Anthropic), and Steve Kaliski's Stripe Minions
-case.
+A synthesis of public writing and talks on agent loops: Addy Osmani's "Loop
+Engineering" framework, Prithvi Rajasekaran's generator/evaluator findings
+(Anthropic), and Steve Kaliski's account of Stripe's Minions pipeline (as
+compiled in a working note the user supplied; treat specific product details
+and figures as indicative, not authoritative).
 
 ## Definition and the four-layer stack
 

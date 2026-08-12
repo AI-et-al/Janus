@@ -7,8 +7,11 @@ description: >-
   morning", "have an agent chip away at X while I sleep", "set up an automation
   that...", "build me a loop for..." — or asks to design, review, or harden any
   recurring/scheduled/self-driving agent workflow. Trigger even if the user
-  never says "loop": any request to make agent work autonomous, recurring, or
-  unattended is this skill's job.
+  never says "loop". Scope: this skill is for designing and hardening a whole
+  loop system (discovery + verification + persistence + human checkpoints),
+  not for simply rerunning a task on an interval or creating a scheduled job —
+  plain "run X every N minutes" requests belong to the simpler loop/schedule
+  tooling.
 ---
 
 # Loop Engineering: Turn a Goal into a Self-Running Loop
@@ -68,7 +71,10 @@ failure (see the anti-pattern table below).
 
 ## Step 3 — Build the six parts
 
-Produce concrete artifacts, not advice. A complete build for a goal includes:
+The playbook's six parts are **automations, worktrees, skills, connectors,
+sub-agents, memory** (see `references/playbook.md` for the part→move mapping).
+Realize them as concrete artifacts, not advice. A complete build for a goal
+includes:
 
 1. **A discovery skill** (`.claude/skills/<goal-slug>-discovery/SKILL.md`):
    what to read, how to judge "actionable vs. noise", what to write to state,
