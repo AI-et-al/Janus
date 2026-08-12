@@ -90,10 +90,12 @@ skip the three that produce safety.
   new instructions keeps its blind spots. Default stance: assume broken until
   proven otherwise.
 - **Maker–checker stop condition**: completion is judged by a fresh small
-  model against an explicit condition (`/goal all tests in test/auth pass and
-  the lint step is clean`), never by the agent doing the work. `/goal` = run
-  until condition met, judged independently; `/loop` = merely rerun on an
-  interval.
+  model against an explicit condition (e.g. "all tests in test/auth pass and
+  the lint step is clean"), never by the agent doing the work. The working
+  note attributes this to a `/goal` command (run until condition met, judged
+  independently, vs. `/loop` = merely rerun on an interval) — verify the
+  command exists in your toolchain version before citing it; the pattern can
+  always be built manually with a post-turn judge step.
 - A loop's floor is its evaluator: the generator's level decides what it can
   produce; the evaluator's level decides what it will not produce.
 

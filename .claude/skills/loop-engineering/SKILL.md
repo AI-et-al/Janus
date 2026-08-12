@@ -1,19 +1,14 @@
 ---
 name: loop-engineering
 description: >-
-  Apply the Loop Engineering playbook to a goal the user wants an AI agent to
-  pursue autonomously. Use this skill whenever the user gives a goal for an
-  agent to work toward over time — "keep the tests green", "triage issues every
-  morning", "have an agent chip away at X while I sleep", "set up an automation
-  that...", "build me a loop for..." — or asks to design, review, or harden any
-  recurring/scheduled/self-driving agent workflow. Trigger even if the user
-  never says "loop". Scope: this skill is for designing and hardening a whole
-  loop system (discovery + verification + persistence + human checkpoints),
-  not for simply rerunning a task on an interval or creating a scheduled job —
-  plain "run X every N minutes" requests belong to the simpler loop/schedule
-  tooling. Do NOT trigger for: "check the deploy every 5 minutes", "remind me
-  to review PRs each morning", or any request that is a single recurring
-  action with no discovery or verification to design.
+  Design and build a self-running loop system around a goal the user sets for
+  an AI agent — discovery, verification, persistence, scheduling, and human
+  checkpoints. Trigger when the user wants an agent working toward a goal
+  autonomously or unattended over time ("keep the tests green", "have an agent
+  chip away at X while I sleep", "build me a loop for..."), even if they never
+  say "loop". Do NOT trigger for single recurring actions with no discovery or
+  verification to design ("check the deploy every 5 minutes", "remind me each
+  morning") — those belong to the simpler loop/schedule tooling.
 ---
 
 # Loop Engineering: Turn a Goal into a Self-Running Loop
@@ -122,8 +117,12 @@ tractable than making a generator self-critical. So:
 - **Verdict format**: PASS only if every check holds; otherwise REJECT with
   each reason listed.
 - **The stop condition is judged by a fresh model**, not the one doing the
-  work (maker–checker). `/goal <condition>` gives you this; a plain interval
-  rerun (`/loop`) does not.
+  work (maker–checker). If the toolchain has a run-until-condition primitive
+  (e.g. a `/goal`-style command — verify it exists in the current version
+  before relying on it), use it; otherwise build the check yourself: after
+  each turn, a separate deterministic step or fresh-model call evaluates the
+  stop condition and decides whether another turn runs. A plain interval
+  rerun (`/loop`) is not this — it repeats without judging.
 
 A loop's floor is its evaluator: the generator decides what it *can* produce,
 the evaluator decides what it *won't*.
