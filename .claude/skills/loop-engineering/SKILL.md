@@ -91,7 +91,11 @@ includes:
    local `/loop` — chosen per Step 1.3, with the tradeoff stated to the user.
 5. **Isolation**: per-task worktrees (`--worktree`) whenever more than one
    task can run in a turn.
-6. **Budget caps**: per-run budget, daily budget, max retries — set *before*
+6. **Connectors**: the loop's read/write hookup to external systems (GitHub
+   for PRs and issues, the tracker, Slack — usually via `gh` or MCP). A loop
+   that can only see the filesystem is a tiny loop; if the design opens PRs or
+   updates tickets, name the mechanism that does it.
+7. **Budget caps**: per-run budget, daily budget, max retries — set *before*
    the first unattended run. A loop without caps has delegated its spending
    authority to its own bugs.
 
@@ -156,6 +160,7 @@ When this skill runs against a goal, the output is:
    afterward, and what "working" looks like.
 
 Walk the first-loop checklist before calling it done: discovery source ·
-state file · independent evaluator · isolation · token cap · human review
-point. A loop missing any of them is one of the five failures wearing a
-disguise.
+real trigger (schedule) · state file · independent evaluator · isolation ·
+token cap · human review point. The first five map to the five moves — a loop
+missing one of those is one of the five named failures wearing a disguise;
+the last two guard the silent costs (token blowout, cognitive surrender).

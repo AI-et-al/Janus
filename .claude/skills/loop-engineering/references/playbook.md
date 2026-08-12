@@ -189,9 +189,9 @@ to stay the engineer, not just the one who presses go.
    the easiest to skip).
 5. Add per-finding worktrees for parallelism — last, after checks are proven.
 
-First-loop checklist (all six or it's a failure in disguise):
-**discovery source · state file · independent evaluator · isolation ·
-token cap · human review point.**
+First-loop checklist (miss one and it's a failure in disguise):
+**discovery source · real trigger (schedule) · state file · independent
+evaluator · isolation · token cap · human review point.**
 
 Skill template for discovery (headings map to the moves; **Stop** is where the
 builder's non-inferable boundaries are written in — leave it out and the loop
