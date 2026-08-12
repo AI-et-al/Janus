@@ -1,10 +1,13 @@
 # The Loop Engineering Playbook (distilled)
 
-A synthesis of public writing and talks on agent loops: Addy Osmani's "Loop
-Engineering" framework, Prithvi Rajasekaran's generator/evaluator findings
-(Anthropic), and Steve Kaliski's account of Stripe's Minions pipeline (as
-compiled in a working note the user supplied; treat specific product details
-and figures as indicative, not authoritative).
+A synthesis of ideas on agent loops as compiled in a working note supplied by
+the user. The note attributes its frameworks to Addy Osmani (the "Loop
+Engineering" framing), Prithvi Rajasekaran (generator/evaluator findings), and
+Steve Kaliski (Stripe's Minions pipeline). **These attributions and all
+specific figures (e.g. PR throughput numbers) are AS REPORTED in that note and
+have not been independently verified — no source URLs were available to check.
+Treat them as illustrative of the design patterns, not as citable facts.** The
+design guidance itself stands on its own merits.
 
 ## Definition and the four-layer stack
 

@@ -11,7 +11,9 @@ description: >-
   loop system (discovery + verification + persistence + human checkpoints),
   not for simply rerunning a task on an interval or creating a scheduled job —
   plain "run X every N minutes" requests belong to the simpler loop/schedule
-  tooling.
+  tooling. Do NOT trigger for: "check the deploy every 5 minutes", "remind me
+  to review PRs each morning", or any request that is a single recurring
+  action with no discovery or verification to design.
 ---
 
 # Loop Engineering: Turn a Goal into a Self-Running Loop
@@ -94,7 +96,9 @@ includes:
 6. **Connectors**: the loop's read/write hookup to external systems (GitHub
    for PRs and issues, the tracker, Slack — usually via `gh` or MCP). A loop
    that can only see the filesystem is a tiny loop; if the design opens PRs or
-   updates tickets, name the mechanism that does it.
+   updates tickets, name the mechanism that does it — and give unattended runs
+   a scoped, least-privilege credential (a repo-scoped token with only the
+   permissions the loop needs), never a personal PAT or broad admin token.
 7. **Budget caps**: per-run budget, daily budget, max retries — set *before*
    the first unattended run. A loop without caps has delegated its spending
    authority to its own bugs.
