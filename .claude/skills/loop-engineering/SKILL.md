@@ -5,8 +5,8 @@ description: >-
   an AI agent — discovery, verification, persistence, scheduling, and human
   checkpoints. Trigger when the user wants an agent working toward a goal
   autonomously or unattended over time ("keep the tests green", "have an agent
-  chip away at X while I sleep", "build me a loop for..."), even if they never
-  say "loop". Do NOT trigger for single recurring actions with no discovery or
+  chip away at X while I sleep", "triage and fix issues on their own"), even
+  if they never say "loop". Do NOT trigger for single recurring actions with no discovery or
   verification to design ("check the deploy every 5 minutes", "remind me each
   morning") — those belong to the simpler loop/schedule tooling.
 ---
