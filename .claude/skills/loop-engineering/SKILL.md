@@ -66,12 +66,12 @@ failure (see the anti-pattern table below).
 | Discovery | Blind Loop | human still spends mornings assigning work |
 | Handoff | Tangled Loop | parallel agents collide in one directory |
 
-## Step 3 — Build the six parts
+## Step 3 — Build the parts
 
 The playbook's six parts are **automations, worktrees, skills, connectors,
 sub-agents, memory** (see `references/playbook.md` for the part→move mapping).
-Realize them as concrete artifacts, not advice. A complete build for a goal
-includes:
+Realize them as concrete artifacts, not advice. A complete build produces
+seven deliverables — the six parts plus the budget-cap guard:
 
 1. **A discovery skill** (`.claude/skills/<goal-slug>-discovery/SKILL.md`):
    what to read, how to judge "actionable vs. noise", what to write to state,
@@ -137,7 +137,7 @@ Install these guards explicitly and tell the user which is which:
 - **Read a sample**: advise the user to read a small daily sample of the
   loop's output and explain each change to themselves; inability to explain
   means comprehension rot has started.
-- **Caps before shipping** (Step 3.6) against token blowout.
+- **Caps before shipping** (Step 3.7) against token blowout.
 
 These guard the four silent costs — verification debt, comprehension rot,
 cognitive surrender, token blowout — which reinforce each other into one
