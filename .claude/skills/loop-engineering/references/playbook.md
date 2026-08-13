@@ -203,7 +203,7 @@ builder's non-inferable boundaries are written in — leave it out and the loop
 merges with confidence it has not earned):
 
 ```
-# .claude/skills/morning-triage/SKILL.md
+# .claude/skills/morning-triage-discovery/SKILL.md
 ## Read      — CI failed since last run; issues < 24h; commits since yesterday;
                the previous state file
 ## Judge     — actionable or noise? blocks a release? already tracked?

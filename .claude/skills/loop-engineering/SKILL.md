@@ -139,9 +139,10 @@ Install these guards explicitly and tell the user which is which:
   means comprehension rot has started.
 - **Caps before shipping** (Step 3.7) against token blowout.
 
-These guard the four silent costs — verification debt, comprehension rot,
-cognitive surrender, token blowout — which reinforce each other into one
-compounding failure.
+Together with the independent evaluator built in Steps 3–4 (the guard
+against verification debt), these cover the four silent costs — verification
+debt, comprehension rot, cognitive surrender, token blowout — which reinforce
+each other into one compounding failure.
 
 ## Step 6 — Start small, grow in the safe order
 

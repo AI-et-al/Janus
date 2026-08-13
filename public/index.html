@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Janus</title>
+<style>
+  :root { --bg: #0e0f12; --fg: #e8e6e1; --dim: #9a968e; --accent: #d97742; }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--fg); font: 16px/1.6 ui-sans-serif, system-ui, sans-serif;
+         min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+  main { max-width: 640px; }
+  h1 { font-size: 2.4rem; letter-spacing: .02em; }
+  h1 span { color: var(--accent); }
+  p.tag { color: var(--dim); margin: .75rem 0 1.5rem; }
+  ul { padding-left: 1.2rem; color: var(--dim); }
+  li { margin: .35rem 0; }
+  li strong { color: var(--fg); font-weight: 600; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  footer { margin-top: 2rem; font-size: .85rem; color: var(--dim); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Janus <span>⟲</span></h1>
+  <p class="tag">Multi-model AI orchestration with persistent context and bounded execution — early alpha.</p>
+  <ul>
+    <li><strong>Context bridge</strong> — sessions, decisions, and tasks survive across runs</li>
+    <li><strong>Model router</strong> — cost-aware selection across providers</li>
+    <li><strong>Swarm architecture</strong> — scout, council, and executor layers with observable, bounded steps</li>
+  </ul>
+  <footer>
+    Janus is a CLI — this page is a placeholder.
+    Source &amp; docs: <a href="https://github.com/AI-et-al/Janus">github.com/AI-et-al/Janus</a>
+  </footer>
+</main>
+</body>
+</html>
