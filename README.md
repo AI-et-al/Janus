@@ -8,6 +8,14 @@
   <img src="https://janus-assets.us-lax-1.linodeobjects.com/symposium-animated-optimized.gif" width="100%" alt="Janus ASCII" />
 </p>
 
+> **Status: retired, succeeded by [Symposium](https://github.com/AI-et-al/symposium).**
+> Janus's durable core — the council swarm and the cost-aware model router — was
+> extracted in August 2026 into Symposium, a multi-model deliberation MCP server
+> whose records preserve disagreement verbatim. Three directives from this repo's
+> [Manifesto](MANIFESTO.md) survive there as founding principles; the mapping is
+> documented in [Symposium's lineage note](https://github.com/AI-et-al/symposium/blob/main/docs/janus.md).
+> Janus remains public, unmaintained, as the historical record.
+
 Janus is a research and engineering platform for coordinating multiple large-language models (LLMs) and tool-using agents over long-horizon tasks.  It combines a **context bridge** for persistent state, a **model router** for cost-aware provider selection, and a layered **swarm architecture** designed to decompose complex goals into observable, verifiable steps.  The system's name evokes the Roman deity Janus, whose two faces look both backward and forward: Janus remembers past sessions via persistent memory while planning and executing future actions.
 
 ## Motivation
@@ -39,7 +47,7 @@ The layered design allows each component to evolve independently while collabora
 
 ## Current status
 
-Janus is under active development.  The foundations include:
+Janus is retired — see the succession note at the top of this README.  The foundations include:
 
 * **Context bridge** - A file-backed persistence layer that stores sessions, decisions and delegated tasks under `janus-context/`.  It can be synchronised via Git to share state across machines.
 * **Model router** - Routing logic for Anthropic, OpenAI and Gemini models with budget tracking and cost recording.  It selects models based on cost and quality constraints, with optional learned tier overrides from peer ratings[177272126167875 L33-L64].  Add or adjust entries in `janus-context/state/models.json` to include additional models.
